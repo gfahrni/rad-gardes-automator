@@ -23,8 +23,8 @@ par des noms fictifs plausibles, cohérents entre les trois documents d'entrée.
 ## Nettoyage appliqué
 
 - Suppression des feuilles inutilisées et des feuilles vides.
-- Colonnes `RAD générale`, `Neuro diagnostique` et `CT Hospit` vidées : seules
-  les colonnes `GARDE` jour/soir, les dates et les indicateurs sont conservées.
+- Colonnes non nécessaires au moteur vidées : seules les colonnes `GARDE`
+  jour/soir, les dates et les indicateurs sont conservées.
 - Indicateurs de jours figés dans l'exemple, pour qu'une ouverture dans Excel
   ne modifie pas les jours fériés.
 - Suppression des zones de texte, images, hyperliens, paramètres d'imprimante,

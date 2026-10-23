@@ -79,8 +79,8 @@ Référence sur ces exemples : **87/88**, **3 rouges**, **74 verts**,
 ### Anonymisation
 
 - Tous les noms de personnes sont remplacés par des noms fictifs plausibles.
-- Les feuilles inutilisées (`Gardes`, `Piquets_RAD_Neuro`, `Orthographe`,
-  feuilles vides) ont été supprimées des classeurs.
+- Les feuilles internes inutilisées et les feuilles vides ont été supprimées
+  des classeurs.
 - Les zones de texte, images, hyperliens, paramètres d'imprimante et vues
   personnalisées ont été retirés.
 - Les métadonnées nominatives, le logo et les initiales du PDF ont été

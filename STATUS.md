@@ -44,10 +44,9 @@ Les fichiers de `examples/` ont été nettoyés pour une publication GitHub :
 
 - noms réels remplacés par des noms fictifs cohérents entre PDF, planning et
   souhaits ;
-- feuilles inutilisées supprimées (`Gardes`, `Piquets_RAD_Neuro`,
-  `Orthographe`, feuilles vides) ;
-- colonnes `RAD générale`, `Neuro diagnostique` et `CT Hospit` vidées ; seules
-  les colonnes `GARDE` jour/soir, dates et indicateurs restent utiles ;
+- feuilles internes inutilisées et feuilles vides supprimées ;
+- colonnes non nécessaires au moteur vidées ; seules les colonnes `GARDE`
+  jour/soir, les dates et les indicateurs restent utiles ;
 - zones de texte, images, hyperliens, paramètres d'imprimante, vues
   personnalisées et noms d'utilisateurs supprimés ;
 - métadonnées, logo et initiales du PDF remplacés ou supprimés ;
