@@ -10,7 +10,6 @@ avec trois documents d'exemple entièrement anonymisés.
 - Total : **47 tests verts**.
 
 ```bash
-cd V4
 QT_QPA_PLATFORM=offscreen .venv/bin/pytest -q
 ```
 
@@ -57,8 +56,6 @@ Voir `examples/README.md` pour le détail.
 ## Commandes
 
 ```bash
-cd V4
-
 # Installation
 uv venv .venv --python 3.12
 UV_HTTP_TIMEOUT=900 uv pip install --python .venv/bin/python -e ".[dev]"
@@ -109,7 +106,7 @@ make screenshots
 
 ## Reprise / sécurité
 
-- Le dépôt V4 est isolé dans `V4/`, avec un historique Git propre.
+- Le dépôt est à la racine du projet, avec un historique Git propre.
 - Les 40 tests du moteur sont dans `tests/` et doivent rester verts.
 - En cas de reprise : `git log --oneline`, `cat STATUS.md`, puis
   `QT_QPA_PLATFORM=offscreen .venv/bin/pytest -q`.

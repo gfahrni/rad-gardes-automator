@@ -1,4 +1,4 @@
-# Gardes — V4
+# RAD Gardes Automator — V4
 
 Application locale d'attribution automatique des gardes de radiologues.
 Le moteur (étapes 1 à 5) et l'interface PySide6 sombre sont dans le même
@@ -26,7 +26,6 @@ Périmètre verrouillé :
 ## Installation
 
 ```bash
-cd V4
 uv venv .venv --python 3.12
 UV_HTTP_TIMEOUT=900 uv pip install --python .venv/bin/python -e ".[dev]"
 ```
@@ -37,7 +36,6 @@ openpyxl, PyMuPDF et OR-Tools, installés avec le paquet `gardes`.
 ## Lancer l'interface
 
 ```bash
-cd V4
 .venv/bin/python -m gardes_gui
 ```
 
@@ -149,7 +147,7 @@ le planning ou dans les souhaits bloque l'étape avec un message explicite.
 
 ## Sorties
 
-Dans le dossier choisi (par défaut `V4/data/run`) :
+Dans le dossier choisi (par défaut `data/run`) :
 
 - `gardes-a-remplir.json`
 - `calcul-gardes.json`
@@ -161,7 +159,6 @@ Dans le dossier choisi (par défaut `V4/data/run`) :
 ## Tests
 
 ```bash
-cd V4
 QT_QPA_PLATFORM=offscreen .venv/bin/pytest -q
 ```
 
@@ -173,7 +170,7 @@ La CI GitHub Actions exécute la même suite sur Ubuntu.
 ## Structure
 
 ```text
-V4/
+rad-gardes-automator/
 ├── examples/                  # PDF + classeurs synthétiques
 ├── src/gardes/                # moteur : steps 1 à 5, CLI, validation
 ├── src/gardes_gui/            # interface PySide6
@@ -185,14 +182,11 @@ V4/
 
 ## Publier sur GitHub
 
+Le dépôt local est déjà initialisé sur la branche `main`. Pour créer le dépôt
+distant public et pousser :
+
 ```bash
-cd V4
-git init
-git add .
-git commit -m "V4 : moteur, interface PySide6 et exemples anonymisés"
-git branch -M main
-git remote add origin git@github.com:<compte>/<depot>.git
-git push -u origin main
+gh repo create rad-gardes-automator --public --source=. --remote=origin --push
 ```
 
 Avant de publier, vérifier qu'aucun fichier réel n'a été ajouté dans

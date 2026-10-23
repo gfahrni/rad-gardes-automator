@@ -10,3 +10,10 @@ data/
 build/
 dist/
 *.egg-info/
+
+# Dossiers et documents locaux hors dépôt
+V3/
+exemples/
+algorithme.md
+architecture-complete-gardes.md
+idee-gardes.md

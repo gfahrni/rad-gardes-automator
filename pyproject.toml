@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "gardes-gui-v4"
+name = "rad-gardes-automator"
 version = "4.0.0"
 description = "Attribution automatique des gardes de radiologues — moteur et interface PySide6"
 readme = "README.md"
