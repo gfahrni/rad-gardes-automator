@@ -209,8 +209,8 @@ Avant de publier, vérifier qu'aucun fichier réel n'a été ajouté dans
 ### Release Windows
 
 Le workflow `.github/workflows/release-windows.yml` construit l'application
-Windows en `onedir`, exécute un smoke test, crée l'archive ZIP et la publie
-dans la release GitHub.
+Windows en `onedir`, exécute un self-test du pipeline et un smoke test de
+l'interface, crée l'archive ZIP et la publie dans la release GitHub.
 
 Pour déclencher une release :
 

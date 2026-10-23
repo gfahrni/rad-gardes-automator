@@ -36,7 +36,19 @@ jobs:
           Copy-Item README.md dist/RAD-Gardes-Automator/README.md
           Copy-Item LICENSE dist/RAD-Gardes-Automator/LICENSE
 
-      - name: Smoke test
+      - name: Self-test du pipeline
+        shell: pwsh
+        run: |
+          $process = Start-Process `
+            -FilePath "dist/RAD-Gardes-Automator/RAD-Gardes-Automator.exe" `
+            -ArgumentList "--self-test" `
+            -Wait `
+            -PassThru
+          if ($process.ExitCode -ne 0) {
+            throw "Self-test pipeline échoué : code $($process.ExitCode)"
+          }
+
+      - name: Smoke test de l'interface
         shell: pwsh
         run: |
           $env:QT_QPA_PLATFORM = "offscreen"
@@ -46,7 +58,7 @@ jobs:
             -Wait `
             -PassThru
           if ($process.ExitCode -ne 0) {
-            throw "Smoke test échoué : code $($process.ExitCode)"
+            throw "Smoke test UI échoué : code $($process.ExitCode)"
           }
 
       - name: Créer l'archive ZIP

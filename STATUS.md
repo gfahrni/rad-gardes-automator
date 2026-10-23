@@ -77,7 +77,8 @@ Workflow : `.github/workflows/release-windows.yml`.
 
 - Déclenchement par tag `v*` ou manuellement.
 - Build `onedir` avec PyInstaller sur `windows-latest`.
-- Smoke test de l'exécutable avec `--smoke-test`.
+- Self-test du pipeline complet avec `--self-test`.
+- Smoke test de l'interface avec `--smoke-test`.
 - Archive `RAD-Gardes-Automator-windows-x64.zip` publiée dans la release.
 - En lancement manuel, l'archive reste un artifact GitHub Actions.
 
