@@ -1,0 +1,37 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gardes-gui-v4"
+version = "4.0.0"
+description = "Attribution automatique des gardes de radiologues — moteur et interface PySide6"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Projet Gardes" }]
+requires-python = ">=3.12"
+dependencies = [
+  "openpyxl==3.1.5",
+  "pymupdf==1.28.2",
+  "ortools==9.15.6755",
+  "PySide6-Essentials==6.12.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+gardes = "gardes.cli:main"
+gardes-gui = "gardes_gui.app:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gardes_gui", "src/gardes"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = [
+  "ignore:builtin type Swig.*:DeprecationWarning",
+  "ignore:.*Conditional Formatting extension.*:UserWarning",
+  "ignore:Bitwise inversion.*:DeprecationWarning",
+]
