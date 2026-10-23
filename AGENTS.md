@@ -6,96 +6,90 @@ Ce dossier est synchronisé par **Syncthing** entre plusieurs machines.
 
 ## Règle absolue : aucun `.git` dans ce dossier
 
-Le dossier de travail ne doit **jamais** contenir de `.git` : Syncthing
-synchronise les fichiers `.git` (index, locks, objets) et casse le dépôt.
-Il ne doit pas non plus contenir de fichier `.git` de délégation.
+Syncthing synchronise les fichiers internes de Git (index, locks, objets)
+et corrompt le dépôt. Donc :
 
-- Ne lancez **jamais** `git init`, `git clone` ou `git worktree add` ici.
-- L'historique Git vit **en dehors** du dossier, dans
-  `~/.rad-gardes-automator/.git` (dossier surchargeable avec
-  `RAD_GARDES_SUPPORT_DIR`), et pointe sur ce dossier via `core.worktree`.
-  Un `git` lancé sans variable d'environnement ne verra donc pas le dépôt :
-  c'est normal.
-- Le dépôt distant :
-  `git@github.com:gfahrni/rad-gardes-automator.git` (branche `main`).
+- **jamais** de `git init`, `git clone` ou `git worktree add` ici ;
+- jamais de dossier `.git` ni de fichier `.git` de délégation ;
+- tout ce qui touche à Git se fait **sans `.git` local**, via `GIT_DIR`
+  pointant hors du dossier (voir ci-dessous).
 
-## Pousser sur GitHub
+Dépôt distant : `git@github.com:gfahrni/rad-gardes-automator.git`
+(branche `main`).
 
-Toujours passer par le script du projet :
+## Interagir avec GitHub
 
-```bash
-./scripts/gh.sh status            # fichiers modifiés / ajoutés / supprimés
-./scripts/gh.sh diff              # différences avec le dernier commit
-./scripts/gh.sh push -m "Message de commit"
-```
+Deux méthodes, au choix. Dans les deux cas, le dossier de travail reste
+un simple dossier de fichiers.
 
-`push` fait, dans l'ordre : `git add -A` → `commit` (si changement) →
-`git push origin main`. Sans `-m`, un message daté est généré.
+### 1. Historique externe (méthode habituelle)
 
-Autres commandes utiles :
-
-```bash
-./scripts/gh.sh log 20            # 20 derniers commits
-./scripts/gh.sh pull              # récupère origin/main (fast-forward)
-```
-
-Au **premier appel** sur une machine, le script clone automatiquement
-l'historique depuis GitHub dans `~/.rad-gardes-automator` (`--no-checkout`),
-sans toucher aux fichiers du dossier. Aucune configuration préalable n'est
-requise hors une clé SSH autorisée sur GitHub.
-
-### Équivalent manuel (si le script est indisponible)
-
-Chaque commande doit définir `GIT_DIR` et `GIT_WORK_TREE` :
+L'historique vit dans `~/.rad-gardes-automator/.git` et pointe sur ce
+dossier via `core.worktree`. Chaque commande Git doit définir les deux
+variables :
 
 ```bash
 export GIT_DIR="$HOME/.rad-gardes-automator/.git"
 export GIT_WORK_TREE="$PWD"
 
-# une seule fois par machine, si GIT_DIR n'existe pas encore :
-env -u GIT_DIR -u GIT_WORK_TREE \
-  git clone --no-checkout git@github.com:gfahrni/rad-gardes-automator.git \
-  "$HOME/.rad-gardes-automator"
-git config core.worktree "$GIT_WORK_TREE"
-git reset --mixed
-
-# puis, à chaque publication :
+git status
 git add -A && git commit -m "Message" && git push origin main
 ```
 
-## Vérifier qu'une publication est bien passée
+Si ce dossier n'existe pas encore (autre machine, ou supprimé), le
+recréer une fois — cela ne touche pas aux fichiers du projet :
 
 ```bash
-./scripts/gh.sh log 3
+env -u GIT_DIR -u GIT_WORK_TREE \
+  git clone --no-checkout git@github.com:gfahrni/rad-gardes-automator.git \
+  "$HOME/.rad-gardes-automator"
+git config core.worktree "$PWD"
+git reset --mixed
+```
+
+### 2. Clone temporaire (si l'historique externe est indisponible)
+
+```bash
+TMP="$(mktemp -d)"
+git clone git@github.com:gfahrni/rad-gardes-automator.git "$TMP/repo"
+rsync -a --delete --exclude '.git/' --exclude '.venv/' --exclude 'build/' \
+  --exclude 'dist/' --exclude 'data/' --exclude '__pycache__/' \
+  ./ "$TMP/repo/"
+cd "$TMP/repo" && git add -A && git commit -m "Message" && git push
+cd - && rm -rf "$TMP"
+```
+
+`.gitignore` reste la référence : ne forcez jamais l'ajout de fichiers
+ignorés (`git add -f` interdit).
+
+## Vérifier une publication
+
+```bash
 git ls-remote git@github.com:gfahrni/rad-gardes-automator.git refs/heads/main
 ```
 
-Le commit affiché par le script doit être le même que celui de `origin/main`.
-Chaque push sur `main` déclenche la CI GitHub Actions (`.github/workflows/tests.yml`).
+Le SHA distant doit correspondre au dernier commit local. Un push sur
+`main` déclenche la CI GitHub Actions (`.github/workflows/tests.yml`).
 
-## Pièges et dépannage
+## Pièges
 
-- **« not a git repository »** : `GIT_DIR` n'est pas défini. Utilisez le
-  script, ou exportez les deux variables ci-dessus.
-- **`~/.rad-gardes-automator` supprimé** : relancez `./scripts/gh.sh status`,
-  il reclone l'historique depuis GitHub. Les commits non poussés sont perdus :
-  poussez régulièrement.
-- **Dossier du projet déplacé/renommé** : mettez à jour
-  `git config core.worktree "<nouveau chemin>"` (ou supprimez
-  `~/.rad-gardes-automator` pour forcer un reclonage).
-- **Conflit à `pull`** : le script refuse si des modifications locales ne
-  sont pas commitées. Commitez/poussez, ou annulez les modifications, puis
-  relancez.
-- **Fichiers ignorés** : `.gitignore` est respecté ; `data/`, `.venv/`,
-  `build/`, `dist/`, `__pycache__/` et les documents locaux (`V3/`,
-  `exemples/`, `algorithme.md`, etc.) ne partent jamais sur GitHub.
+- **« not a git repository »** : `GIT_DIR` / `GIT_WORK_TREE` ne sont pas
+  définis. Utilisez la méthode ci-dessus.
+- **Dossier du projet déplacé** : `git config core.worktree "<nouveau
+  chemin>"`, ou supprimez `~/.rad-gardes-automator` pour forcer un
+  reclonage.
+- **`pull` avec modifications locales** : commit suspect ou conflit,
+  inspectez avant de forcer quoi que ce soit.
+- **Fichiers ignorés** : `data/`, `.venv/`, `build/`, `dist/`,
+  `__pycache__/`, `.DS_Store` et les documents locaux (`V3/`,
+  `exemples/`, `algorithme.md`, etc.) ne doivent jamais partir sur GitHub.
 
 ## Avant de pousser
 
 ```bash
-make test                         # ou : QT_QPA_PLATFORM=offscreen .venv/bin/pytest -q
+make test      # ou : QT_QPA_PLATFORM=offscreen .venv/bin/pytest -q
 ```
 
 Gardez `README.md` et `STATUS.md` cohérents avec les changements de
-comportement. Respectez le style existant (français, docstrings concises,
-code moteur dans `src/gardes/`, UI dans `src/gardes_gui/`).
+comportement. Style : français, docstrings concises, moteur dans
+`src/gardes/`, UI dans `src/gardes_gui/`.
