@@ -12,7 +12,7 @@ datas = [(str(ROOT / "examples"), "examples")]
 binaries = []
 hiddenimports = []
 
-for package in ("ortools", "pymupdf"):
+for package in ("ortools", "pdfplumber", "pdfminer"):
     package_datas, package_binaries, package_hiddenimports = collect_all(package)
     datas += package_datas
     binaries += package_binaries

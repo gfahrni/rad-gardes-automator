@@ -106,6 +106,8 @@ Workflow : `.github/workflows/release-windows.yml`.
   cellules fautives et les couleurs autorisées ; l'utilisateur corrige le
   fichier puis relance. Rouge/vert en semaine restent des warnings.
 - Le moteur est intégré dans `src/gardes` ; V4 est autonome.
+- Extraction PDF via `pdfplumber` (MIT) depuis 4.0.1 : PyMuPDF (AGPL-3.0) a été
+  retiré pour que l'exécutable Windows puisse être distribué sous MIT.
 - Aucun nom de personne n'est codé en dur dans le moteur.
 
 ## Limites connues
