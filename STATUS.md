@@ -6,8 +6,9 @@
 avec trois documents d'exemple entièrement anonymisés.
 
 - Tests GUI : **7 verts** (3 contrôleur + 4 smoke Qt, dont le thème sombre).
+- Tests chemins : **4 verts** (source, onedir, onefile, dossier de travail).
 - Tests moteur : **40 verts** (steps 1 à 5 + CLI, référence métier).
-- Total : **47 tests verts**.
+- Total : **51 tests verts**.
 
 ```bash
 QT_QPA_PLATFORM=offscreen .venv/bin/pytest -q
@@ -70,6 +71,16 @@ QT_QPA_PLATFORM=offscreen .venv/bin/pytest -q
 make screenshots
 ```
 
+## Release Windows
+
+Workflow : `.github/workflows/release-windows.yml`.
+
+- Déclenchement par tag `v*` ou manuellement.
+- Build `onedir` avec PyInstaller sur `windows-latest`.
+- Smoke test de l'exécutable avec `--smoke-test`.
+- Archive `RAD-Gardes-Automator-windows-x64.zip` publiée dans la release.
+- En lancement manuel, l'archive reste un artifact GitHub Actions.
+
 ## Architecture
 
 - `src/gardes_gui/controller.py` : orchestration sans Qt, réutilise le moteur intégré.
@@ -98,7 +109,8 @@ make screenshots
 
 ## Limites connues
 
-- Pas de onefile / signature.
+- Pas de onefile ; version Windows fournie en `onedir`.
+- Pas de signature Windows/macOS.
 - Pas de round suivant.
 - Pas de version été.
 - Géométrie PDF/planning calée sur les exemples.
@@ -115,6 +127,6 @@ make screenshots
 
 ## Étapes suivantes éventuelles
 
-- Exécutable onefile / signature macOS (hors périmètre V4).
+- Exécutable onefile / signature Windows et macOS (hors périmètre V4).
 - Version été.
 - Mode « round suivant » (hors périmètre V4).

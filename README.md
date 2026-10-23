@@ -2,8 +2,8 @@
 
 Application locale d'attribution automatique des gardes de radiologues.
 Le moteur (étapes 1 à 5) et l'interface PySide6 sombre sont dans le même
-dépôt. L'application se lance depuis les sources : pas d'exécutable onefile,
-pas de signature macOS.
+dépôt. L'application se lance depuis les sources sur macOS/Linux ; une version
+Windows portable (`onedir`) est publiée dans les releases GitHub.
 
 **V4 est prête à être publiée sur GitHub** : les trois documents d'exemple
 sont entièrement synthétiques, sans nom réel, sans feuille morte, sans zone de
@@ -44,6 +44,18 @@ ou, si le script est installé :
 ```bash
 .venv/bin/gardes-gui
 ```
+
+## Application Windows portable
+
+Les releases GitHub contiennent l'archive
+`RAD-Gardes-Automator-windows-x64.zip` :
+
+1. télécharger l'archive depuis la dernière release ;
+2. l'extraire dans un dossier ;
+3. lancer `RAD-Gardes-Automator.exe`.
+
+Aucune installation de Python n'est nécessaire. Les fichiers produits sont
+écrits par défaut dans `Documents/RAD Gardes Automator/run`.
 
 ## Parcours
 
@@ -162,9 +174,10 @@ Dans le dossier choisi (par défaut `data/run`) :
 QT_QPA_PLATFORM=offscreen .venv/bin/pytest -q
 ```
 
-La suite V4 (**47 tests** : 7 GUI + 40 moteur) couvre le contrôleur (pipeline
-complet, validation des crédits), un smoke test Qt qui parcourt les six écrans
-en mode `offscreen`, un test du thème sombre, le CLI et les steps 1 à 5.
+La suite V4 (**51 tests** : 7 GUI + 4 chemins + 40 moteur) couvre le
+contrôleur (pipeline complet, validation des crédits), un smoke test Qt qui
+parcourt les six écrans en mode `offscreen`, un test du thème sombre, les
+chemins source/onedir/onefile, le CLI et les steps 1 à 5.
 La CI GitHub Actions exécute la même suite sur Ubuntu.
 
 ## Structure
@@ -174,10 +187,11 @@ rad-gardes-automator/
 ├── examples/                  # PDF + classeurs synthétiques
 ├── src/gardes/                # moteur : steps 1 à 5, CLI, validation
 ├── src/gardes_gui/            # interface PySide6
-├── tests/                     # 47 tests
-├── scripts/                   # captures d'écran reproductibles
+├── tests/                     # 51 tests
+├── scripts/                   # captures et entrée PyInstaller
 ├── docs/screenshots/          # aperçu README
-└── .github/workflows/         # CI
+├── rad-gardes-automator.spec  # build Windows onedir
+└── .github/workflows/         # CI + release Windows
 ```
 
 ## Publier sur GitHub
@@ -192,9 +206,26 @@ gh repo create rad-gardes-automator --public --source=. --remote=origin --push
 Avant de publier, vérifier qu'aucun fichier réel n'a été ajouté dans
 `examples/` et que `data/` reste ignoré par Git.
 
+### Release Windows
+
+Le workflow `.github/workflows/release-windows.yml` construit l'application
+Windows en `onedir`, exécute un smoke test, crée l'archive ZIP et la publie
+dans la release GitHub.
+
+Pour déclencher une release :
+
+```bash
+git tag v4.0.0
+git push origin v4.0.0
+```
+
+Le workflow peut aussi être lancé manuellement depuis l'onglet Actions ; dans
+ce cas l'archive est disponible comme artifact, sans création de release.
+
 ## Limites V4
 
-- Pas d'exécutable onefile, pas de signature.
+- Pas d'exécutable onefile ; la version Windows est fournie en `onedir`.
+- Pas de signature Windows/macOS.
 - Pas de round suivant : chaque période repart des trois documents de référence.
 - Pas de version été.
 - Le PDF et le planning sont calés sur le format des exemples fournis.

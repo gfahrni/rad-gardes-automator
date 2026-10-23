@@ -3,10 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from pathlib import Path
 
-
-def default_workdir() -> Path:
-    # V4/src/gardes_gui/state.py -> V4/data/run
-    return Path(__file__).resolve().parents[2] / "data" / "run"
+from .paths import default_workdir
 
 
 @dataclass

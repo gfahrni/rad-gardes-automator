@@ -26,12 +26,20 @@ def apply_theme(app: QApplication) -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    app = QApplication.instance() or QApplication(argv or sys.argv)
+    raw_argv = list(sys.argv if argv is None else argv)
+    smoke_test = "--smoke-test" in raw_argv
+    qt_argv = [arg for arg in raw_argv if arg != "--smoke-test"]
+
+    app = QApplication.instance() or QApplication(qt_argv)
     app.setApplicationName("Gardes radiologues")
     app.setOrganizationName("Projet gardes")
     apply_theme(app)
     window = MainWindow()
     window.show()
+    if smoke_test:
+        app.processEvents()
+        window.close()
+        return 0
     return app.exec()
 
 

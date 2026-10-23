@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ..state import default_workdir
+from ..paths import default_workdir, examples_dir
 from .common import Card, FileRow, SectionHeader
 
 
@@ -107,8 +107,7 @@ class WelcomeView(QWidget):
             self.workdir_row.set_path(path)
 
     def load_examples(self) -> None:
-        root = Path(__file__).resolve().parents[3]
-        examples = root / "examples"
+        examples = examples_dir()
         files = {
             "pdf": examples / "exemple-calcul-gardes.pdf",
             "planning": examples / "exemple-planning-vide.xlsx",
