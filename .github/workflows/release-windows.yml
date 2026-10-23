@@ -35,6 +35,18 @@ jobs:
         run: |
           Copy-Item README.md dist/RAD-Gardes-Automator/README.md
           Copy-Item LICENSE dist/RAD-Gardes-Automator/LICENSE
+          Copy-Item THIRD_PARTY_NOTICES.md dist/RAD-Gardes-Automator/THIRD_PARTY_NOTICES.md
+          Copy-Item -Recurse licenses dist/RAD-Gardes-Automator/licenses
+
+      - name: Vérifier l'absence de PyMuPDF (AGPL)
+        shell: pwsh
+        run: |
+          $hits = Get-ChildItem -Recurse dist/RAD-Gardes-Automator |
+            Where-Object { $_.Name -match '(?i)(fitz|mupdf)' }
+          if ($hits) {
+            throw "Composant PyMuPDF/MuPDF détecté dans le build : $($hits.FullName -join ', ')"
+          }
+          Write-Host "Aucun composant PyMuPDF/MuPDF dans l'archive."
 
       - name: Self-test du pipeline
         shell: pwsh

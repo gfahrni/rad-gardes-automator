@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "rad-gardes-automator"
-version = "4.0.0"
+version = "4.0.1"
 description = "Attribution automatique des gardes de radiologues — moteur et interface PySide6"
 readme = "README.md"
 license = { text = "MIT" }
@@ -12,7 +12,7 @@ authors = [{ name = "Projet Gardes" }]
 requires-python = ">=3.12"
 dependencies = [
   "openpyxl==3.1.5",
-  "pymupdf==1.28.2",
+  "pdfplumber==0.11.10",
   "ortools==9.15.6755",
   "PySide6-Essentials==6.12.0",
 ]

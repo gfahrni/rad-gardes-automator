@@ -31,7 +31,7 @@ UV_HTTP_TIMEOUT=900 uv pip install --python .venv/bin/python -e ".[dev]"
 ```
 
 PySide6 Essentials 6.12.0 est la seule dépendance graphique. Le moteur utilise
-openpyxl, PyMuPDF et OR-Tools, installés avec le paquet `gardes`.
+openpyxl, pdfplumber et OR-Tools, installés avec le paquet `gardes`.
 
 ## Lancer l'interface
 
@@ -215,8 +215,8 @@ l'interface, crée l'archive ZIP et la publie dans la release GitHub.
 Pour déclencher une release :
 
 ```bash
-git tag v4.0.0
-git push origin v4.0.0
+git tag v4.0.1
+git push origin v4.0.1
 ```
 
 Le workflow peut aussi être lancé manuellement depuis l'onglet Actions ; dans
@@ -235,3 +235,10 @@ Voir `STATUS.md` pour l'état du build et la reprise.
 ## Licence
 
 MIT — voir [`LICENSE`](LICENSE).
+
+Les composants tiers embarqués dans l'archive Windows sont listés dans
+[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md). Toutes les dépendances du
+moteur sont sous licence permissive (MIT, BSD, Apache-2.0) : l'extraction PDF
+utilise `pdfplumber` depuis la version 4.0.1, PyMuPDF (AGPL-3.0) ayant été
+retiré pour que l'exécutable puisse être distribué sous MIT. Seul PySide6/Qt
+est sous LGPL-3.0, utilisé non modifié et livré en DLL remplaçables.

@@ -5,7 +5,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-import pymupdf
+import pdfplumber
 
 from .errors import GardesError
 from .jsonio import generated_at, sha256_file, write_json
@@ -193,22 +193,43 @@ def _build_person(
     )
 
 
+def _extract_words(pdf_path: Path) -> list[tuple[float, float, float, float, str]]:
+    """Extrait les mots avec leur boîte (x0, y0, x1, y1, texte).
+
+    ``y0`` est mesuré depuis le haut de la page, comme avec l'ancien backend
+    MuPDF : les constantes de colonnes ci-dessus restent le contrat de lecture.
+    """
+    with pdfplumber.open(pdf_path) as doc:
+        if len(doc.pages) != 1:
+            raise GardesError(
+                f"Le PDF doit contenir une seule page, {len(doc.pages)} trouvée(s).",
+                code="pdf_pages",
+            )
+        page = doc.pages[0]
+        # pdfminer (sous pdfplumber) et MuPDF n'ont pas la même origine : on
+        # ramène les coordonnées au coin haut-gauche de la CropBox, comme le
+        # faisait MuPDF, pour conserver COLUMN_EDGES et les fenêtres de noms.
+        ox, oy = -page.bbox[0], -page.bbox[1]
+        raw = page.extract_words(keep_blank_chars=False, use_text_flow=False)
+    return [
+        (
+            float(w["x0"]) + ox,
+            float(w["top"]) + oy,
+            float(w["x1"]) + ox,
+            float(w["bottom"]) + oy,
+            str(w["text"]),
+        )
+        for w in raw
+    ]
+
+
 def parse_pdf(
     pdf_path: str | Path,
     *,
     planning_path: str | Path | None = None,
 ) -> dict:
     pdf_path = Path(pdf_path)
-    doc = pymupdf.open(pdf_path)
-    try:
-        if len(doc) != 1:
-            raise GardesError(
-                f"Le PDF doit contenir une seule page, {len(doc)} trouvée(s).",
-                code="pdf_pages",
-            )
-        words = doc[0].get_text("words")
-    finally:
-        doc.close()
+    words = _extract_words(pdf_path)
     if not words:
         raise GardesError("PDF illisible : aucun texte extractible.", code="pdf_empty")
 

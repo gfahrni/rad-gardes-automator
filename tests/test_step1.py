@@ -135,3 +135,14 @@ def test_empty_planning_blocks(pdf: Path, planning_xlsx: Path) -> None:
     data = parse_pdf(pdf, planning_path=planning_xlsx)
     with pytest.raises(GardesError, match="Planning vide"):
         apply_prescan(copy.deepcopy(data), {"slots": []})
+
+
+def test_pdf_backend_reste_permissif() -> None:
+    """Contrat de licence : l'extraction PDF ne doit pas dépendre de PyMuPDF (AGPL)."""
+    import inspect
+
+    from gardes import step1_pdf
+
+    source = inspect.getsource(step1_pdf)
+    assert "pymupdf" not in source.lower()
+    assert "import pdfplumber" in source
