@@ -1,0 +1,36 @@
+RAD Gardes V5 — application macOS (prototype)
+=============================================
+
+Contenu du dossier
+------------------
+RAD Gardes V5.app     l'application (double-clic)
+gardes-in-vide.xlsx   le classeur type, vierge, à remplir
+gardes-in-demo.xlsx   un exemple déjà correct, pour essayer tout de suite
+LISEZ-MOI.txt         ce fichier
+
+Essayer en 30 secondes
+----------------------
+1. Ouvrir « RAD Gardes V5.app ».
+2. « Parcourir… » puis choisir gardes-in-demo.xlsx.
+3. « Lancer le calcul » : le rapport s'affiche (100 %, 8/8).
+4. « Ouvrir le résultat » ouvre le classeur produit à côté de l'entrée.
+
+Remplir le classeur
+-------------------
+Feuille « Dates »    : une ligne par créneau, colonne Date = vraie date Excel
+                       (jj.mm.aaaa), colonne Créneau = Matin ou Soir.
+Feuille « Personnes » : un nom par ligne et le nombre exact de gardes.
+La somme des gardes doit être exactement égale au nombre de créneaux.
+
+Au moindre écart (en-tête, colonne en trop, date en texte, doublon, somme
+différente…), l'application refuse, liste les problèmes et n'écrit rien.
+
+Sorties (à côté du classeur choisi)
+-----------------------------------
+<nom>-resultat.xlsx   feuilles « Attribution » et « Synthèse »
+<nom>-rapport.txt     le rapport, avec le taux de réussite
+
+Premier lancement
+-----------------
+L'application est signée en ad-hoc (pas d'identité de développeur). Si macOS
+la bloque : clic droit sur l'app > « Ouvrir » > « Ouvrir ».

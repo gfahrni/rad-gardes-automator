@@ -1,0 +1,15 @@
+RAD Gardes V5 — version portable Windows
+========================================
+
+1. Décompresser l'archive où vous voulez.
+2. Remplir « gardes-in-vide.xlsx » (ou partir de « gardes-in-demo.xlsx »).
+3. Lancer « RAD Gardes V5.exe ».
+
+Dans l'application : « Parcourir… » pour choisir le classeur, puis
+« Lancer le calcul ». Le résultat s'écrit à côté du classeur choisi :
+<nom>-resultat.xlsx et <nom>-rapport.txt.
+
+Si le classeur ne correspond pas exactement au format attendu,
+l'application refuse et liste les problèmes, sans rien écrire.
+
+Rien à installer : Python n'est pas nécessaire.

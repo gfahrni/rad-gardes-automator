@@ -1,0 +1,21 @@
+RAD Gardes — prototype V5
+Entrée : examples/gardes-in-demo.xlsx
+
+Créneaux : 8 sur 4 date(s) (01.03.2027 → 07.03.2027).
+Personnes : 4.
+Quotas : 3 + 2 + 2 + 1 = 8.
+
+RÉSULTAT : OK
+Taux de réussite : 100 % (8/8 créneaux attribués).
+Quotas respectés : 4/4 personnes.
+Jours consécutifs : 1 paire(s).
+
+Détail par personne :
+  Muller                    3/3  (matins 1, soirs 2)
+  Rossi                     2/2  (matins 1, soirs 1)
+  Dupont                    2/2  (matins 1, soirs 1)
+  Keller                    1/1  (matins 1, soirs 0)
+
+Fichiers écrits :
+  examples/gardes-in-demo-resultat.xlsx
+  examples/gardes-in-demo-rapport.txt
