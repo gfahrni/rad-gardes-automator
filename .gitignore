@@ -1,4 +1,8 @@
 .venv/
+.build-venv/
+.build-work/
+build/
+dist/
 __pycache__/
 *.py[cod]
 .pytest_cache/
@@ -7,13 +11,9 @@ __pycache__/
 htmlcov/
 .DS_Store
 data/
-build/
-dist/
 *.egg-info/
 
-# Dossiers et documents locaux hors dépôt
-V3/
-exemples/
+# Notes de conception locales
 algorithme.md
 architecture-complete-gardes.md
 idee-gardes.md

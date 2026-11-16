@@ -1,7 +1,10 @@
 # AGENTS.md — consignes de travail
 
-Projet : **RAD Gardes Automator** (moteur Python + interface PySide6).
-Code dans `src/gardes/` et `src/gardes_gui/`, tests dans `tests/`.
+Projet : **RAD Gardes Automator V5** — attribution de gardes depuis un classeur
+Excel simple. Moteur et interface (tkinter) dans `gardes_simple/`, tests dans
+`tests/`, packaging PyInstaller dans `packaging/`, classeurs de démonstration
+dans `examples/`.
+
 Ce dossier est synchronisé par **Syncthing** entre plusieurs machines.
 
 ## Règle absolue : aucun `.git` dans ce dossier
@@ -15,12 +18,9 @@ et corrompt le dépôt. Donc :
   pointant hors du dossier (voir ci-dessous).
 
 Dépôt distant : `git@github.com:gfahrni/rad-gardes-automator.git`
-(branche `main`).
+(branche `main`, qui porte la V5 ; la V4 est au tag `v4.0.1`).
 
 ## Interagir avec GitHub
-
-Deux méthodes, au choix. Dans les deux cas, le dossier de travail reste
-un simple dossier de fichiers.
 
 ### 1. Historique externe (méthode habituelle)
 
@@ -69,27 +69,27 @@ git ls-remote git@github.com:gfahrni/rad-gardes-automator.git refs/heads/main
 ```
 
 Le SHA distant doit correspondre au dernier commit local. Un push sur
-`main` déclenche la CI GitHub Actions (`.github/workflows/tests.yml`).
-
-## Pièges
-
-- **« not a git repository »** : `GIT_DIR` / `GIT_WORK_TREE` ne sont pas
-  définis. Utilisez la méthode ci-dessus.
-- **Dossier du projet déplacé** : `git config core.worktree "<nouveau
-  chemin>"`, ou supprimez `~/.rad-gardes-automator` pour forcer un
-  reclonage.
-- **`pull` avec modifications locales** : commit suspect ou conflit,
-  inspectez avant de forcer quoi que ce soit.
-- **Fichiers ignorés** : `data/`, `.venv/`, `build/`, `dist/`,
-  `__pycache__/`, `.DS_Store` et les documents locaux (`V3/`,
-  `exemples/`, `algorithme.md`, etc.) ne doivent jamais partir sur GitHub.
+`main` lance la CI (`.github/workflows/tests.yml`). Un tag `v5*` lance
+`.github/workflows/release-v5.yml` (exe Windows + release).
 
 ## Avant de pousser
 
 ```bash
-make test      # ou : QT_QPA_PLATFORM=offscreen .venv/bin/pytest -q
+.venv/bin/python -m pytest -q      # ou : uv run --with pytest --with openpyxl python -m pytest -q
+.venv/bin/python -m ruff check .
 ```
 
-Gardez `README.md` et `STATUS.md` cohérents avec les changements de
-comportement. Style : français, docstrings concises, moteur dans
-`src/gardes/`, UI dans `src/gardes_gui/`.
+Gardez `README.md` cohérent avec le comportement : c'est la doc utilisateur
+de l'application. Style : français, docstrings concises, messages d'erreur
+explicites et actionnables.
+
+## Pièges
+
+- **« not a git repository »** : `GIT_DIR` / `GIT_WORK_TREE` ne sont pas
+  définis.
+- **Dossier du projet déplacé** : `git config core.worktree "<nouveau
+  chemin>"`, ou supprimez `~/.rad-gardes-automator` pour forcer un
+  reclonage.
+- **Applications** : l'app macOS se construit localement
+  (`packaging/build-macos.sh`) ; l'exe Windows passe par la CI ou par un PC
+  Windows (`packaging/build-windows.ps1`).

@@ -1,244 +1,179 @@
-# RAD Gardes Automator — V4
+# RAD Gardes Automator — V5
 
-Application locale d'attribution automatique des gardes de radiologues.
-Le moteur (étapes 1 à 5) et l'interface PySide6 sombre sont dans le même
-dépôt. L'application se lance depuis les sources sur macOS/Linux ; une version
-Windows portable (`onedir`) est publiée dans les releases GitHub.
+Attribution des gardes de radiologues à partir d'un **classeur Excel simple**.
+Pas de PDF, pas de planning existant à décoder : on décrit les créneaux à
+couvrir et le nombre de gardes de chacun, l'application produit le planning et
+un rapport.
 
-**V4 est prête à être publiée sur GitHub** : les trois documents d'exemple
-sont entièrement synthétiques, sans nom réel, sans feuille morte, sans zone de
-texte résiduelle et sans métadonnée nominative. Voir
-[`examples/README.md`](examples/README.md).
+- application **macOS** (`.app`) et **Windows portable** (`.exe`, sans installation) ;
+- interface minimale : choisir le classeur, cliquer, lire le rapport ;
+- **refus strict** : si le classeur ne correspond pas exactement au format,
+  l'application refuse, liste les problèmes et n'écrit rien.
 
-Périmètre verrouillé :
+## Télécharger
 
-- un run complet par période ;
-- relance tous les 6 mois à partir des nouveaux documents de référence ;
-- **pas de reprise d'un planning précédent** (« round suivant » hors V4) ;
-- le moteur est intégré dans `src/gardes/`, sans duplication.
+Les deux archives sont dans la dernière release GitHub (page « Releases ») :
 
-## Prérequis
+| Plateforme | Fichier | Note |
+|---|---|---|
+| macOS (Apple Silicon) | `RAD-Gardes-V5-macos-arm64.zip` | app non notariée : au premier lancement, clic droit → « Ouvrir » si macOS bloque |
+| Windows x64 | `RAD-Gardes-V5-windows-x64.zip` | exe non signé : « Informations complémentaires » → « Exécuter quand même » |
 
-- Python 3.12
-- `uv`
-- macOS ou Linux avec affichage graphique
+Chaque archive contient l'application, `gardes-in-vide.xlsx` (le classeur type)
+et `gardes-in-demo.xlsx` (un exemple correct, pour essayer).
 
-## Installation
+## Essayer en 30 secondes
 
-```bash
-uv venv .venv --python 3.12
-UV_HTTP_TIMEOUT=900 uv pip install --python .venv/bin/python -e ".[dev]"
-```
+1. Ouvrir l'application.
+2. « Parcourir… » puis choisir `gardes-in-demo.xlsx`.
+3. « Lancer le calcul » : le rapport s'affiche — **100 % (8/8)**, quotas 4/4.
+4. « Ouvrir le résultat » ouvre le classeur produit à côté de l'entrée.
 
-PySide6 Essentials 6.12.0 est la seule dépendance graphique. Le moteur utilise
-openpyxl, pdfplumber et OR-Tools, installés avec le paquet `gardes`.
+## Utilisation
 
-## Lancer l'interface
+Interface : un champ pour le classeur, « Parcourir… », « Modèle vierge… » (écrit
+un classeur type prêt à remplir), « Lancer le calcul », « Ouvrir le résultat ».
 
-```bash
-.venv/bin/python -m gardes_gui
-```
-
-ou, si le script est installé :
+En ligne de commande (depuis les sources) :
 
 ```bash
-.venv/bin/gardes-gui
+python3 -m gardes_simple                                   # interface graphique
+python3 -m gardes_simple --entree examples/gardes-in-demo.xlsx
+python3 -m gardes_simple --modele gardes-in-vide.xlsx      # classeur type
 ```
 
-## Application Windows portable
+Codes de sortie : `0` succès, `2` refus (format), `3` quotas impossibles.
 
-Les releases GitHub contiennent l'archive
-`RAD-Gardes-Automator-windows-x64.zip` :
+## Le classeur d'entrée
 
-1. télécharger l'archive depuis la dernière release ;
-2. l'extraire dans un dossier ;
-3. lancer `RAD-Gardes-Automator.exe`.
+Un fichier `.xlsx` avec deux feuilles utiles (une éventuelle feuille
+« Mode d'emploi » est ignorée).
 
-Aucune installation de Python n'est nécessaire. Les fichiers produits sont
-écrits par défaut dans `Documents/RAD Gardes Automator/run`.
+**Feuille `Dates`** — une ligne par créneau à couvrir, à partir de la ligne 2 :
 
-## Parcours
-
-| Écran | Rôle |
+| A | B |
 |---|---|
-| **1. Fichiers** | PDF des gardes, planning Excel, souhaits Excel, dossier de sortie |
-| **2. Planning** | Scan de `Feuille1` : 181 jours, 112 créneaux, 88 trous, 24 fixes, 80 WE, 8 fériés |
-| **3. Crédit de Gardes** | 12 personnes assignables, `Samedi` / `Dimanche` / `Fériés` + `Départ / Arrivée`, lecture seule |
-| **4. Souhaits** | 14 personnes, 181 dates, volontaires/vacances/non dispo, avertissements |
-| **5. Attribution** | CP-SAT : couverture, rouges, verts, affectations, trous, quotas |
-| **6. Export** | `planning-rempli.xlsx` + `rapport.txt`, ouverture des fichiers |
+| `Date` | `Créneau` |
+| 01.03.2027 | Matin |
+| 01.03.2027 | Soir |
 
-Le planning est scanné **avant** le crédit de gardes : c'est lui qui identifie
-les personnes pré-remplies et le pool assignable.
+- `Date` : une **vraie date Excel** (format date), pas du texte ;
+- `Créneau` : `Matin` ou `Soir` (liste déroulante dans le classeur type).
 
-## Exemples fournis
+**Feuille `Personnes`** — une ligne par personne :
 
-Les fichiers de `examples/` sont des données de démonstration anonymisées.
-Ils sont cohérents entre eux : les noms du PDF, du planning et des souhaits
-correspondent exactement.
-
-| Fichier | Contenu |
+| A | B |
 |---|---|
-| `exemple-calcul-gardes.pdf` | PDF de calcul : 30 lignes, 26 CDC, 3 urgentistes, 1 exclu |
-| `exemple-planning-vide.xlsx` | Planning de départ : `Feuille1`, 181 jours, 88 trous, 24 pré-remplis |
-| `exemple-souhaits-garde.xlsx` | Souhaits : 14 personnes, 181 dates |
+| `Nom` | `Gardes` |
+| Muller | 3 |
+| Rossi | 2 |
 
-Référence sur ces exemples : **87/88**, **3 rouges**, **74 verts**,
-**1 trou férié** (`2027-01-02` soir), 24 fixes préservés.
+- `Nom` : unique (majuscules et espaces multiples ignorés à la comparaison) ;
+- `Gardes` : nombre **entier** ≥ 0, nombre **exact** de gardes de la personne.
 
-### Anonymisation
+Le bouton « Modèle vierge » (ou `--modele`) écrit ce classeur : en-têtes,
+colonne date pré-formatée, liste déroulante Matin/Soir et contrôles de saisie.
 
-- Tous les noms de personnes sont remplacés par des noms fictifs plausibles.
-- Les feuilles internes inutilisées et les feuilles vides ont été supprimées
-  des classeurs.
-- Les zones de texte, images, hyperliens, paramètres d'imprimante et vues
-  personnalisées ont été retirés.
-- Les métadonnées nominatives, le logo et les initiales du PDF ont été
-  supprimés ou remplacés.
-- Les noms fictifs sont les mêmes dans les trois documents, pour que le
-  pipeline reste exécutable de bout en bout.
+## Les règles vérifiées
 
-## Thème sombre
+1. La somme des `Gardes` doit être **exactement** égale au nombre de lignes de
+   `Dates`. Sinon refus.
+2. Une personne ne peut pas faire **deux gardes le même jour** (Matin + Soir).
+3. Chaque créneau reçoit une seule personne, et chaque personne fait exactement
+   son quota.
+4. En-têtes, colonnes vides en trop, doublons de créneau, doublons de nom,
+   dates en texte ou vides, créneaux inconnus, formules : **refus explicite**.
 
-- Fond `#0f1115`, cartes `#171a21`, bordures `#2a303c`.
-- Texte `#e6e9ef`, texte secondaire `#9aa4b2`.
-- Accent bleu `#3b82f6` / `#5b9dff`.
-- Tableaux, en-têtes, onglets, scrollbars, tooltips et champs stylés.
-- `QMessageBox`, `QDialog` et `QFileDialog` sont thémés ; les sélecteurs de
-  fichiers utilisent le dialogue Qt (`DontUseNativeDialog`) pour rester sombres.
-- Palette Qt sombre appliquée via `QPalette` + feuille de style.
+Le solveur est un flot maximal entier (b-matching biparti) : polynomial, donc
+pas de recherche qui explose sur 200 créneaux. Une passe déterministe échange
+ensuite des dates entre personnes pour casser les **deux jours consécutifs**
+autant que faire se peut, et évite le pire enchaînement « Soir puis Matin le
+lendemain ».
 
-## Aperçu
+## Quand le classeur ne correspond pas
 
-Captures générées en mode `offscreen` à partir des exemples anonymisés.
+Rien n'est écrit, et chaque problème est listé avec sa cellule :
 
-| Fichiers | Planning |
-|---|---|
-| ![](docs/screenshots/00-welcome.png) | ![](docs/screenshots/01-planning.png) |
+```text
+REFUS — le classeur ne respecte pas le format attendu.
 
-| Crédit de Gardes | Souhaits |
-|---|---|
-| ![](docs/screenshots/02-credit.png) | ![](docs/screenshots/03-wishes.png) |
-
-| Attribution | Export |
-|---|---|
-| ![](docs/screenshots/04-attribution.png) | ![](docs/screenshots/05-export.png) |
-
-Pour les régénérer :
-
-```bash
-make screenshots
+2 problème(s) :
+  1. Dates, ligne 4 : créneau « Matinée » invalide (attendu « Matin » ou « Soir »).
+  2. Somme des gardes (7) ≠ nombre de créneaux (8) : il manque 1 garde
+     dans la colonne « Gardes ».
 ```
-
-### Crédit de Gardes — lecture seule
-
-- L'écran affiche **uniquement les personnes qui seront placées dans le run** :
-  les 12 assignables.
-- Sont exclus : les pré-remplis/neuro, le nom exclu, les urgentistes et les CDC
-  à quota week-end/férié nul.
-- Colonnes : `Nom`, `Samedi`, `Dimanche`, `Fériés`, `Départ / Arrivée`.
-- Aucune édition : si une valeur est fausse, la secrétaire corrige le PDF puis
-  clique sur « Recharger depuis le PDF ».
-- « Faire valider » enregistre `calcul-gardes.json` avec `validated = true`,
-  puis scanne les souhaits.
-- Sur l'exemple, la colonne `Départ / Arrivée` vaut `—` pour les 12 personnes :
-  les notes de dates du PDF concernent des personnes exclues du pool.
-
-Les noms sont comparés **exactement** (casse, accents, espaces). Une typo dans
-le planning ou dans les souhaits bloque l'étape avec un message explicite.
-
-### Couleurs des souhaits
-
-- Vert `FF00FF00` = volontaire, cyan `FF00FFFF` = vacances/formation, rouge
-  `FFFF0000` = non dispo.
-- Neutres : fond de ligne, blanc, gris, `none`, `theme0`.
-- **Toute autre couleur est bloquante**, même sur une personne non candidate.
-  Le message liste les cellules, la personne, la date, le RGB et les couleurs
-  autorisées. L'utilisateur corrige le fichier des souhaits puis relance.
-- Rouge/vert sur un jour de semaine : warning (couleur reconnue mais hors scope).
 
 ## Sorties
 
-Dans le dossier choisi (par défaut `data/run`) :
+À côté du classeur choisi (ou dans `--sortie`) :
 
-- `gardes-a-remplir.json`
-- `calcul-gardes.json`
-- `souhaits-gardes.json`
-- `attribution-gardes.json`
-- `planning-rempli.xlsx`
-- `rapport.txt`
-
-## Tests
-
-```bash
-QT_QPA_PLATFORM=offscreen .venv/bin/pytest -q
-```
-
-La suite V4 (**51 tests** : 7 GUI + 4 chemins + 40 moteur) couvre le
-contrôleur (pipeline complet, validation des crédits), un smoke test Qt qui
-parcourt les six écrans en mode `offscreen`, un test du thème sombre, les
-chemins source/onedir/onefile, le CLI et les steps 1 à 5.
-La CI GitHub Actions exécute la même suite sur Ubuntu.
-
-## Structure
+- `<nom>-resultat.xlsx` : feuille `Attribution` (Date, Créneau, Nom) et feuille
+  `Synthèse` (prévu / attribué / écart / matins / soirs) ;
+- `<nom>-rapport.txt` : le même rapport que dans l'interface.
 
 ```text
-rad-gardes-automator/
-├── examples/                  # PDF + classeurs synthétiques
-├── src/gardes/                # moteur : steps 1 à 5, CLI, validation
-├── src/gardes_gui/            # interface PySide6
-├── tests/                     # 51 tests
-├── scripts/                   # captures et entrée PyInstaller
-├── docs/screenshots/          # aperçu README
-├── rad-gardes-automator.spec  # build Windows onedir
-└── .github/workflows/         # CI + release Windows
+RÉSULTAT : OK
+Taux de réussite : 100 % (8/8 créneaux attribués).
+Quotas respectés : 4/4 personnes.
+Jours consécutifs : 1 paire(s).
 ```
 
-## Publier sur GitHub
+Sur l'exemple, cette paire restante est inévitable : Muller doit 3 gardes sur
+4 dates, donc il travaille forcément deux jours voisins.
 
-Le dépôt local est déjà initialisé sur la branche `main`. Pour créer le dépôt
-distant public et pousser :
+## Développement
 
 ```bash
-gh repo create rad-gardes-automator --public --source=. --remote=origin --push
+uv venv .venv --python 3.12
+uv pip install --python .venv/bin/python -e ".[dev]"
+.venv/bin/python -m gardes_simple   # interface
+.venv/bin/python -m pytest -q
 ```
 
-Avant de publier, vérifier qu'aucun fichier réel n'a été ajouté dans
-`examples/` et que `data/` reste ignoré par Git.
+Structure :
 
-### Release Windows
+```text
+gardes_simple/      moteur + interface (tkinter)
+examples/           classeurs de démonstration
+packaging/          PyInstaller : spec, icône, scripts mac/Windows
+tests/              suite pytest
+```
 
-Le workflow `.github/workflows/release-windows.yml` construit l'application
-Windows en `onedir`, exécute un self-test du pipeline et un smoke test de
-l'interface, crée l'archive ZIP et la publie dans la release GitHub.
+## Construire les applications
 
-Pour déclencher une release :
+macOS (sur un Mac) :
 
 ```bash
-git tag v4.0.1
-git push origin v4.0.1
+packaging/build-macos.sh        # → dist/RAD Gardes V5.app
 ```
 
-Le workflow peut aussi être lancé manuellement depuis l'onglet Actions ; dans
-ce cas l'archive est disponible comme artifact, sans création de release.
+Windows (sur un PC Windows, Python 3.12) :
 
-## Limites V4
+```powershell
+.\packaging\build-windows.ps1   # → dist\RAD-Gardes-V5-windows-x64.zip
+```
 
-- Pas d'exécutable onefile ; la version Windows est fournie en `onedir`.
-- Pas de signature Windows/macOS.
-- Pas de round suivant : chaque période repart des trois documents de référence.
-- Pas de version été.
-- Le PDF et le planning sont calés sur le format des exemples fournis.
+GitHub Actions construit et teste l'exe Windows (workflow `release-v5`, manuel
+ou tag `v5*`) : les tests, le build, un self-test de l'exe, puis l'archive
+attachée à la release. L'app macOS n'est pas construite par la CI (pas de
+runner macOS disponible sur ce dépôt) : elle se construit localement.
 
-Voir `STATUS.md` pour l'état du build et la reprise.
+## Limites
+
+- Quotas exacts : pas de « au moins » / « au plus ».
+- Pas d'indisponibilités ni de souhaits : seulement les règles ci-dessus.
+- Pas de reprise d'un planning précédent : chaque run repart du classeur.
+- App macOS en arm64 uniquement, non notariée ; exe Windows non signé.
+
+## Version précédente
+
+La V4 (moteur PDF + planning + interface PySide6) reste disponible dans le tag
+`v4.0.1` et dans la release `v4.0.1`. Pour la consulter :
+
+```bash
+git checkout v4.0.1
+```
 
 ## Licence
 
 MIT — voir [`LICENSE`](LICENSE).
-
-Les composants tiers embarqués dans l'archive Windows sont listés dans
-[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md). Toutes les dépendances du
-moteur sont sous licence permissive (MIT, BSD, Apache-2.0) : l'extraction PDF
-utilise `pdfplumber` depuis la version 4.0.1, PyMuPDF (AGPL-3.0) ayant été
-retiré pour que l'exécutable puisse être distribué sous MIT. Seul PySide6/Qt
-est sous LGPL-3.0, utilisé non modifié et livré en DLL remplaçables.

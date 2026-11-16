@@ -4,34 +4,24 @@ build-backend = "hatchling.build"
 
 [project]
 name = "rad-gardes-automator"
-version = "4.0.1"
-description = "Attribution automatique des gardes de radiologues — moteur et interface PySide6"
+version = "5.0.0"
+description = "Attribution des gardes de radiologues — classeur Excel simple, app macOS et Windows"
 readme = "README.md"
 license = { text = "MIT" }
 authors = [{ name = "Projet Gardes" }]
 requires-python = ">=3.12"
-dependencies = [
-  "openpyxl==3.1.5",
-  "pdfplumber==0.11.10",
-  "ortools==9.15.6755",
-  "PySide6-Essentials==6.12.0",
-]
+dependencies = ["openpyxl==3.1.5"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8"]
+dev = ["pytest>=8", "ruff>=0.6"]
+build = ["pyinstaller>=6.10", "pillow>=10"]
 
 [project.scripts]
-gardes = "gardes.cli:main"
-gardes-gui = "gardes_gui.app:main"
+gardes = "gardes_simple.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/gardes_gui", "src/gardes"]
+packages = ["gardes_simple"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
-filterwarnings = [
-  "ignore:builtin type Swig.*:DeprecationWarning",
-  "ignore:.*Conditional Formatting extension.*:UserWarning",
-  "ignore:Bitwise inversion.*:DeprecationWarning",
-]
