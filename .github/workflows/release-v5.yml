@@ -1,4 +1,6 @@
-# Build V5 (macOS + Windows) : manuel ou tag v5*.
+# Build V5 Windows portable : manuel ou tag v5*. L'app macOS se construit
+# localement (packaging/build-macos.sh) : les runners macOS ne sont pas
+# disponibles dans cette installation GitHub Actions.
 # Ne touche pas la CI de la V4 (tests.yml, release-windows.yml).
 name: release-v5
 
@@ -12,46 +14,6 @@ permissions:
   contents: write
 
 jobs:
-  macos:
-    runs-on: macos-latest
-    timeout-minutes: 25
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Dépendances
-        run: |
-          python -m pip install --upgrade pip
-          pip install pyinstaller openpyxl==3.1.5 pytest
-      - name: Tests
-        working-directory: v5-brut
-        run: python -m pytest -q tests
-      - name: Construire l'app macOS
-        working-directory: v5-brut
-        run: pyinstaller packaging/rad_gardes_v5.spec --noconfirm --clean --distpath dist
-      - name: Self-test de l'app
-        working-directory: v5-brut
-        run: |
-          cp examples/gardes-in-demo.xlsx /tmp/in.xlsx
-          "dist/RAD Gardes V5.app/Contents/MacOS/RAD Gardes V5" --entree /tmp/in.xlsx
-          test -f /tmp/in-resultat.xlsx
-      - name: Archiver
-        working-directory: v5-brut
-        run: ditto -c -k --keepParent "dist/RAD Gardes V5.app" "dist/RAD-Gardes-V5-macos-arm64.zip"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: RAD-Gardes-V5-macos-arm64
-          path: v5-brut/dist/RAD-Gardes-V5-macos-arm64.zip
-          if-no-files-found: error
-      - name: Release
-        if: startsWith(github.ref, 'refs/tags/v5')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: v5-brut/dist/RAD-Gardes-V5-macos-arm64.zip
-          generate_release_notes: true
-          fail_on_unmatched_files: true
-
   windows:
     runs-on: windows-latest
     timeout-minutes: 25
