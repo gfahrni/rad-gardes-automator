@@ -1,0 +1,108 @@
+# Build V5 (macOS + Windows) : manuel ou tag v5*.
+# Ne touche pas la CI de la V4 (tests.yml, release-windows.yml).
+name: release-v5
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v5*"
+
+permissions:
+  contents: write
+
+jobs:
+  macos:
+    runs-on: macos-14
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Dépendances
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller openpyxl==3.1.5 pytest
+      - name: Tests
+        working-directory: v5-brut
+        run: python -m pytest -q tests
+      - name: Construire l'app macOS
+        working-directory: v5-brut
+        run: pyinstaller packaging/rad_gardes_v5.spec --noconfirm --clean --distpath dist
+      - name: Self-test de l'app
+        working-directory: v5-brut
+        run: |
+          cp examples/gardes-in-demo.xlsx /tmp/in.xlsx
+          "dist/RAD Gardes V5.app/Contents/MacOS/RAD Gardes V5" --entree /tmp/in.xlsx
+          test -f /tmp/in-resultat.xlsx
+      - name: Archiver
+        working-directory: v5-brut
+        run: ditto -c -k --keepParent "dist/RAD Gardes V5.app" "dist/RAD-Gardes-V5-macos-arm64.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RAD-Gardes-V5-macos-arm64
+          path: v5-brut/dist/RAD-Gardes-V5-macos-arm64.zip
+          if-no-files-found: error
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v5')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: v5-brut/dist/RAD-Gardes-V5-macos-arm64.zip
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Dépendances
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller openpyxl==3.1.5 pytest
+      - name: Tests
+        working-directory: v5-brut
+        run: python -m pytest -q tests
+      - name: Construire l'exe portable
+        working-directory: v5-brut
+        run: pyinstaller packaging/rad_gardes_v5.spec --noconfirm --clean --distpath dist
+      - name: Ajouter le classeur type et le mode d'emploi
+        working-directory: v5-brut
+        shell: pwsh
+        run: |
+          $Dossier = "dist\RAD Gardes V5"
+          Copy-Item examples\gardes-in-vide.xlsx $Dossier
+          Copy-Item examples\gardes-in-demo.xlsx $Dossier
+          Copy-Item packaging\LISEZ-MOI-windows.txt $Dossier
+      - name: Self-test de l'exe
+        working-directory: v5-brut
+        shell: pwsh
+        run: |
+          Copy-Item examples\gardes-in-demo.xlsx "$env:TEMP\in.xlsx" -Force
+          $p = Start-Process -FilePath "dist\RAD Gardes V5\RAD Gardes V5.exe" `
+               -ArgumentList '--entree', "$env:TEMP\in.xlsx" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "Self-test échoué : code $($p.ExitCode)" }
+          if (-not (Test-Path "$env:TEMP\in-resultat.xlsx")) { throw "Aucun résultat produit" }
+          Write-Host "Self-test OK : résultat produit."
+      - name: Créer l'archive ZIP
+        working-directory: v5-brut
+        shell: pwsh
+        run: |
+          Compress-Archive -Path "dist\RAD Gardes V5\*" `
+            -DestinationPath "dist\RAD-Gardes-V5-windows-x64.zip" -Force
+      - uses: actions/upload-artifact@v4
+        with:
+          name: RAD-Gardes-V5-windows-x64
+          path: v5-brut/dist/RAD-Gardes-V5-windows-x64.zip
+          if-no-files-found: error
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v5')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: v5-brut/dist/RAD-Gardes-V5-windows-x64.zip
+          generate_release_notes: true
+          fail_on_unmatched_files: true
