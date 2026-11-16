@@ -40,3 +40,8 @@ Version Windows
 RAD-Gardes-V5-windows-x64.zip est la version portable Windows : décompresser
 puis lancer « RAD Gardes V5.exe ». Construite par la CI GitHub Actions, et
 testée au build (elle doit produire un résultat sur l'exemple).
+
+Mises à jour
+------------
+Page Releases du dépôt : github.com/gfahrni/rad-gardes-automator/releases
+(macOS : RAD-Gardes-V5-macos-arm64.zip, Windows : RAD-Gardes-V5-windows-x64.zip)
