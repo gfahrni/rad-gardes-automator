@@ -182,11 +182,16 @@ pas être produit depuis ce Mac. Deux chemins, tous deux prêts :
    # → dist\RAD-Gardes-V5-windows-x64.zip (onedir portable)
    ```
 
-2. **Par GitHub Actions** : le workflow est déjà sur `main`
-   (`.github/workflows/release-v5.yml`) ; lancer `release-v5` depuis l'onglet
-   Actions en choisissant la branche `v5-brut`, ou pousser un tag `v5.0.0`. Deux jobs construisent `macos-arm64` et
-   `windows-x64` ; l'exe est testé avant d'être zippé (il doit produire
-   `<nom>-resultat.xlsx`) et l'archive est attachée à la release.
+2. **Par GitHub Actions** : le workflow `.github/workflows/release-v5.yml`
+   est présent sur `main` et sur la branche `v5-brut`. Lancer `release-v5`
+   depuis l'onglet Actions en choisissant la branche `v5-brut`, ou pousser un
+   tag `v5.0.0`. Le job `windows` exécute les tests, construit l'exe, vérifie
+   qu'il produit bien `<nom>-resultat.xlsx`, puis zippe l'ensemble et
+   l'attache à la release.
+
+   L'app macOS n'est pas construite par la CI (les runners macOS ne sont pas
+   disponibles ici) : elle se construit sur le Mac avec
+   `packaging/build-macos.sh`.
 
 L'archive Windows contient `RAD Gardes V5.exe`, ses dépendances, le classeur
 vierge, l'exemple et un `LISEZ-MOI-windows.txt`.
