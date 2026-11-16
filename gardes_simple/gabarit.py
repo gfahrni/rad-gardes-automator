@@ -58,10 +58,10 @@ def ecrire_modele(
     feuille_dates.title = FEUILLE_DATES
     _entetes(feuille_dates, ENTETE_DATES, (14, 12))
     feuille_dates["A1"].comment = Comment(
-        "Une vraie date Excel par ligne (format Date, jj.mm.aaaa).", "Prototype V5"
+        "Une vraie date Excel par ligne (format Date, jj.mm.aaaa).", "RAD Gardes V5"
     )
     feuille_dates["B1"].comment = Comment(
-        "Matin ou Soir. La liste déroulante est déjà posée sur la colonne.", "Prototype V5"
+        "Matin ou Soir. La liste déroulante est déjà posée sur la colonne.", "RAD Gardes V5"
     )
     for ligne in range(2, lignes_dates + 2):
         feuille_dates.cell(row=ligne, column=1).number_format = "DD.MM.YYYY"
@@ -76,10 +76,10 @@ def ecrire_modele(
     feuille_personnes = classeur.create_sheet(FEUILLE_PERSONNES)
     _entetes(feuille_personnes, ENTETE_PERSONNES, (32, 10))
     feuille_personnes["A1"].comment = Comment(
-        "Un nom par ligne, sans doublon (majuscules et accents comparés).", "Prototype V5"
+        "Un nom par ligne, sans doublon (majuscules et accents comparés).", "RAD Gardes V5"
     )
     feuille_personnes["B1"].comment = Comment(
-        "Nombre entier de gardes. La somme doit égaler le nombre de créneaux.", "Prototype V5"
+        "Nombre entier de gardes. La somme doit égaler le nombre de créneaux.", "RAD Gardes V5"
     )
     valide_quota = DataValidation(
         type="whole", operator="between", formula1="0", formula2="999", allow_blank=True

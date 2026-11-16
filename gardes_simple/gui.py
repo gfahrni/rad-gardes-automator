@@ -12,7 +12,7 @@ from tkinter import filedialog, messagebox, scrolledtext, ttk
 from . import gabarit
 from .pipeline import Issue, traiter
 
-TITRE = "RAD Gardes — prototype V5"
+TITRE = "RAD Gardes — V5"
 COULEUR_OK = "#1a7f37"
 COULEUR_REFUS = "#b42318"
 COULEUR_NEUTRE = "#4b5563"

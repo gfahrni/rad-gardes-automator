@@ -8,9 +8,9 @@ Windows: pyinstaller packaging\\rad_gardes_v5.spec --noconfirm
 import sys
 from pathlib import Path
 
-RACINE = Path(SPECPATH).resolve().parent  # dossier v5-brut/
+RACINE = Path(SPECPATH).resolve().parent  # racine du dépôt
 NOM = "RAD Gardes V5"
-VERSION = "5.0.0"
+VERSION = "5.0.1"
 
 a = Analysis(
     [str(RACINE / "packaging" / "entree.py")],

@@ -1,4 +1,4 @@
-RAD Gardes — prototype V5
+RAD Gardes — V5
 Entrée : examples/gardes-in-demo.xlsx
 
 Créneaux : 8 sur 4 date(s) (01.03.2027 → 07.03.2027).

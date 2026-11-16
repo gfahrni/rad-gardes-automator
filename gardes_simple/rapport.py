@@ -10,7 +10,7 @@ from .solve import Resultat
 from .sortie import date_min_max
 from .validate import Lecture
 
-TITRE = "RAD Gardes — prototype V5"
+TITRE = "RAD Gardes — V5"
 
 
 def _entete(chemin: Path) -> list[str]:
@@ -38,7 +38,7 @@ def rapport_refus(chemin: Path, lecture: Lecture) -> str:
         "",
         "Aucun fichier n'a été écrit.",
         "Corrigez le classeur, puis relancez.",
-        "Format attendu : voir v5-brut/README.md (ou le bouton « Modèle vierge »).",
+        "Format attendu : voir README.md (ou le bouton « Modèle vierge »).",
     ]
     return "\n".join(lignes) + "\n"
 

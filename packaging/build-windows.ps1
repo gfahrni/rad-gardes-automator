@@ -1,5 +1,5 @@
 # Construit l'application Windows portable (onedir) : dist\RAD-Gardes-V5-windows-x64.zip
-# Prérequis : Windows, Python 3.12 (py launcher), pas besoin de PySide6.
+# Prérequis : Windows et Python 3.12 (lanceur py).
 $ErrorActionPreference = "Stop"
 $Racine = Split-Path $PSScriptRoot -Parent
 Set-Location $Racine

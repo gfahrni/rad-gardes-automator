@@ -1,4 +1,4 @@
-RAD Gardes V5 — application macOS (prototype)
+RAD Gardes V5 — application macOS
 =============================================
 
 Contenu du dossier

@@ -22,7 +22,7 @@ def _flux_surs() -> None:
 def construire_analyseur() -> argparse.ArgumentParser:
     analyseur = argparse.ArgumentParser(
         prog="gardes_simple",
-        description="Prototype V5 : attribution de gardes depuis un classeur Excel simple.",
+        description="Attribution de gardes depuis un classeur Excel simple (V5).",
     )
     analyseur.add_argument(
         "--entree", type=Path, help="classeur d'entrée à traiter (mode ligne de commande)"

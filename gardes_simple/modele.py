@@ -1,4 +1,4 @@
-"""Objets minimaux du prototype V5 : créneaux à remplir et personnes avec quota."""
+"""Objets minimaux : créneaux à remplir et personnes avec leur quota."""
 
 from __future__ import annotations
 

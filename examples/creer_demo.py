@@ -1,6 +1,6 @@
-"""Régénère l'exemple d'entrée et le modèle vierge du prototype V5.
+"""Régénère le classeur d'exemple et le modèle vierge de la V5.
 
-Usage (depuis v5-brut/) : python3 examples/creer_demo.py
+Usage (depuis la racine du dépôt) : python3 examples/creer_demo.py
 """
 
 from __future__ import annotations

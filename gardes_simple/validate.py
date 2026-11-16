@@ -1,6 +1,6 @@
 """Lecture et validation stricte du classeur d'entrée.
 
-Règle du prototype : tout écart au format documenté est un **refus explicite**.
+Règle : tout écart au format documenté est un **refus explicite**.
 Le programme ne devine jamais, ne corrige jamais, ne complète jamais.
 """
 
