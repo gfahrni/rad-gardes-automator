@@ -34,3 +34,9 @@ Premier lancement
 -----------------
 L'application est signée en ad-hoc (pas d'identité de développeur). Si macOS
 la bloque : clic droit sur l'app > « Ouvrir » > « Ouvrir ».
+
+Version Windows
+---------------
+RAD-Gardes-V5-windows-x64.zip est la version portable Windows : décompresser
+puis lancer « RAD Gardes V5.exe ». Construite par la CI GitHub Actions, et
+testée au build (elle doit produire un résultat sur l'exemple).
