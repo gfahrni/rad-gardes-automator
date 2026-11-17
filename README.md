@@ -12,7 +12,8 @@ La V6 reste disponible au tag `v6.0.0` ; la V5 simplifiée reste abandonnée
 
 1. Choisir le **PDF des gardes**, le **planning Excel** et les **souhaits Excel**.
 2. Vérifier le **dossier de sortie** (proposé par défaut :
-   `~/Documents/RAD Gardes Automator/run`).
+   `~/Documents/RAD Gardes Automator/run`). Les sélecteurs de fichiers
+   s'ouvrent dans ce dossier, puis reprennent le dernier dossier utilisé.
 3. Cliquer sur **« Lancer »**.
 4. Lire le **rapport** à l'écran et ouvrir le **planning rempli** ou le dossier.
 

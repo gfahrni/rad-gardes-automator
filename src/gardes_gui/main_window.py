@@ -23,7 +23,7 @@ from PySide6.QtWidgets import (
 from gardes.errors import GardesError
 
 from .controller import PipelineController
-from .paths import default_workdir, examples_dir
+from .paths import bundle_root, default_workdir, examples_dir, user_home
 from .widgets.common import Card, FileRow, MetricCard, SectionHeader
 from .workers import RunWorker
 
@@ -37,6 +37,11 @@ class MainWindow(QMainWindow):
         self.resize(1040, 860)
         self.controller = PipelineController(persist=False)
         self.worker: RunWorker | None = None
+        self._last_dir: Path | None = None
+        try:
+            default_workdir().mkdir(parents=True, exist_ok=True)
+        except OSError:
+            pass
         self.last_xlsx: Path | None = None
         self.last_report: Path | None = None
 
@@ -185,16 +190,32 @@ class MainWindow(QMainWindow):
 
     # ------------------------------------------------------------------ fichiers
     def _start_directory(self) -> str:
-        documents = Path.home() / "Documents"
-        return str(documents if documents.is_dir() else Path.home())
+        """Dernier dossier utilisé, sinon le dossier de travail par défaut."""
+        candidates: list[Path | None] = [
+            self._last_dir,
+            Path(self.workdir_row.path()) if self.workdir_row.path() else None,
+            default_workdir(),
+            user_home() / "Documents",
+            user_home(),
+        ]
+        for candidate in candidates:
+            if candidate is not None and candidate.is_dir():
+                return str(candidate)
+        return str(user_home())
+
+    def _is_bundled(self, path: Path) -> bool:
+        try:
+            path.resolve().relative_to(bundle_root().resolve())
+            return True
+        except ValueError:
+            return False
 
     def _pick_file(self, row: FileRow, title: str, file_filter: str) -> None:
-        start = row.path()
-        if start:
-            path = Path(start)
-            start = str(path.parent if path.is_file() else path)
-        else:
-            start = self._start_directory()
+        start = self._start_directory()
+        if self._last_dir is None and row.path():
+            current = Path(row.path())
+            if current.is_file() and not self._is_bundled(current):
+                start = str(current.parent)
         selected, _ = QFileDialog.getOpenFileName(
             self,
             title,
@@ -204,12 +225,15 @@ class MainWindow(QMainWindow):
         )
         if selected:
             row.set_path(selected)
+            self._last_dir = Path(selected).parent
 
     def _pick_directory(self) -> None:
-        start = self.workdir_row.path() or str(default_workdir())
-        path = Path(start)
-        if not path.is_dir():
-            start = self._start_directory()
+        current = Path(self.workdir_row.path()) if self.workdir_row.path() else None
+        start = (
+            str(current)
+            if current is not None and current.is_dir()
+            else self._start_directory()
+        )
         selected = QFileDialog.getExistingDirectory(
             self,
             "Choisir le dossier de sortie",
@@ -218,6 +242,7 @@ class MainWindow(QMainWindow):
         )
         if selected:
             self.workdir_row.set_path(selected)
+            self._last_dir = Path(selected)
 
     def load_examples(self) -> None:
         examples = examples_dir()
@@ -238,6 +263,7 @@ class MainWindow(QMainWindow):
         self.planning_row.set_path(str(files["planning"]))
         self.wishes_row.set_path(str(files["wishes"]))
         self.workdir_row.set_path(str(default_workdir()))
+        self._last_dir = None
         self._clear_result()
         self.status_label.setText("Exemples chargés. Clique sur « Lancer ».")
 

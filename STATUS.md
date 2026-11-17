@@ -16,6 +16,14 @@ un dossier de sortie, « Lancer », puis le rapport et le planning rempli.
 QT_QPA_PLATFORM=offscreen .venv/bin/pytest -q
 ```
 
+### Correctif 7.0.1
+
+Les sélecteurs de fichiers s'ouvrent désormais dans le **dossier de travail**
+(par défaut `~/Documents/RAD Gardes Automator/run`), créé au démarrage de
+l'application, au lieu de `~/Documents` ou de la racine. Après un premier
+choix, le dialogue reprend le dernier dossier utilisé. Une option de
+diagnostic `--paths` affiche les chemins résolus.
+
 ## Flux V7
 
 | Étape | Contenu |

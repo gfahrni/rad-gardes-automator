@@ -18,7 +18,7 @@ from PyInstaller.utils.hooks import collect_all
 
 RACINE = Path(SPECPATH).resolve().parent
 NOM = "RAD Gardes V7"
-VERSION = "7.0.0"
+VERSION = "7.0.1"
 
 datas = [(str(RACINE / "examples"), "examples")]
 binaries = []

@@ -15,6 +15,7 @@ def test_simple_window_defaults(qapp) -> None:
     assert window.planning_row.path() == ""
     assert window.wishes_row.path() == ""
     assert window.workdir_row.path() == str(default_workdir())
+    assert Path(window._start_directory()) == Path(window.workdir_row.path())
     assert window.result_card.isHidden()
     window.close()
 

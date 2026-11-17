@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -35,6 +36,19 @@ def examples_dir() -> Path:
     return source_root() / "examples"
 
 
+def user_home() -> Path:
+    """Dossier personnel fiable, même si HOME est vide ou vaut « / »."""
+    home = Path.home()
+    if str(home) == "/" or not home.is_dir():
+        try:
+            import pwd
+
+            home = Path(pwd.getpwuid(os.getuid()).pw_dir)
+        except (ImportError, KeyError, OSError):
+            pass
+    return home
+
+
 def default_workdir() -> Path:
     """Dossier de sortie par défaut, toujours inscriptible par l'utilisateur."""
-    return Path.home() / "Documents" / "RAD Gardes Automator" / "run"
+    return user_home() / "Documents" / "RAD Gardes Automator" / "run"

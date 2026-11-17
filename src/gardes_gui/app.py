@@ -65,6 +65,17 @@ def _self_test() -> int:
 
 def main(argv: list[str] | None = None) -> int:
     raw_argv = list(sys.argv if argv is None else argv)
+    if "--paths" in raw_argv:
+        from pathlib import Path
+
+        from .paths import bundle_root, default_workdir, examples_dir, user_home
+
+        print(f"home      : {user_home()}")
+        print(f"cwd       : {Path.cwd()}")
+        print(f"bundle    : {bundle_root()}")
+        print(f"examples  : {examples_dir()}")
+        print(f"workdir   : {default_workdir()}")
+        return 0
     if "--self-test" in raw_argv:
         return _self_test()
 
