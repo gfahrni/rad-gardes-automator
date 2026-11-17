@@ -18,7 +18,7 @@ from PyInstaller.utils.hooks import collect_all
 
 RACINE = Path(SPECPATH).resolve().parent
 NOM = "RAD Gardes V7"
-VERSION = "7.1.0"
+VERSION = "7.2.0"
 
 datas = [(str(RACINE / "examples"), "examples")]
 binaries = []
@@ -50,6 +50,10 @@ a = Analysis(
         "notebook",
         "matplotlib",
         "scipy",
+        # Inutilisé par l'application ; retire SQLite et, sur macOS, les
+        # bibliothèques ICU dont il dépend (~38 Mo).
+        "sqlite3",
+        "_sqlite3",
     ],
     noarchive=False,
 )

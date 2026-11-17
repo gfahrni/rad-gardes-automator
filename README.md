@@ -44,7 +44,8 @@ Chaque release GitHub contient deux archives :
 | Windows x64 | `RAD-Gardes-V7-windows-x64.zip` | décompresser, lancer `RAD Gardes V7.exe` |
 
 Aucune installation de Python n'est nécessaire. Les exemples synthétiques sont
-embarqués : bouton « Charger les exemples ».
+embarqués : bouton « Charger les exemples ». Sur macOS, l'app occupe ~217 Mo
+sur disque et l'archive ~82 Mo (SQLite/ICU inutilisés exclus du build).
 
 - **macOS** : l'app est signée en ad-hoc. Au premier lancement, si macOS la
   bloque : clic droit sur l'app > « Ouvrir » > « Ouvrir ».
@@ -166,8 +167,8 @@ rad-gardes-automator/
 ## Publier une release V7
 
 ```bash
-git tag v7.1.0
-git push origin v7.1.0
+git tag v7.2.0
+git push origin v7.2.0
 ```
 
 Le workflow `.github/workflows/release-v7.yml` construit l'application Windows
@@ -180,7 +181,7 @@ ajoutée à la release :
 
 ```bash
 packaging/build-macos.sh
-gh release upload v7.1.0 dist/RAD-Gardes-V7-macos-arm64.zip
+gh release upload v7.2.0 dist/RAD-Gardes-V7-macos-arm64.zip
 ```
 
 Le workflow peut aussi être lancé manuellement depuis l'onglet Actions ; dans

@@ -16,6 +16,17 @@ un dossier de sortie, « Lancer », puis le rapport et le planning rempli.
 QT_QPA_PLATFORM=offscreen .venv/bin/pytest -q
 ```
 
+### Allègement 7.2.0
+
+Exclusion de `sqlite3`/`_sqlite3`, inutilisés par l'application. Sur macOS,
+cela retire aussi les bibliothèques ICU dont SQLite dépend :
+
+- app macOS : **255 Mo → 217 Mo** ;
+- archive macOS : **97 Mo → 82 Mo** ;
+- self-test et smoke test vérifiés après exclusion.
+
+Le gain est marginal sous Windows (le ZIP n'embarque pas d'ICU).
+
 ### Compatibilité 7.1.0
 
 Les en-têtes de garde du soir `13h-23h` **et** `15h-23h` sont acceptés.
@@ -107,7 +118,7 @@ packaging/build-windows.ps1
 
 Workflow : `.github/workflows/release-v7.yml`, déclenché par un tag `v7*`.
 
-1. `git tag v7.1.0 && git push origin v7.1.0`
+1. `git tag v7.2.0 && git push origin v7.2.0`
 2. La CI teste le projet, construit l'app Windows, exécute `--self-test` et
    `--smoke-test`, crée `RAD-Gardes-V7-windows-x64.zip` et la release.
 3. L'app macOS est construite localement (les runners macOS ne sont pas
@@ -115,7 +126,7 @@ Workflow : `.github/workflows/release-v7.yml`, déclenché par un tag `v7*`.
 
 ```bash
 packaging/build-macos.sh
-gh release upload v7.1.0 dist/RAD-Gardes-V7-macos-arm64.zip
+gh release upload v7.2.0 dist/RAD-Gardes-V7-macos-arm64.zip
 ```
 
 ## Architecture
