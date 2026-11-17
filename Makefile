@@ -1,7 +1,7 @@
 PY := .venv/bin/python
 PYTEST := .venv/bin/pytest
 
-.PHONY: install test run screenshots clean
+.PHONY: install test run screenshots build-macos build-windows clean
 
 install:
 	uv venv .venv --python 3.12
@@ -15,6 +15,12 @@ run:
 
 screenshots:
 	QT_QPA_PLATFORM=offscreen $(PY) scripts/generate_screenshots.py
+
+build-macos:
+	packaging/build-macos.sh
+
+build-windows:
+	pwsh -File packaging/build-windows.ps1
 
 clean:
 	rm -rf data

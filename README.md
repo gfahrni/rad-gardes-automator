@@ -1,23 +1,23 @@
-# RAD Gardes Automator — V4
+# RAD Gardes Automator — V6
 
 Application locale d'attribution automatique des gardes de radiologues.
 Le moteur (étapes 1 à 5) et l'interface PySide6 sombre sont dans le même
-dépôt. L'application se lance depuis les sources sur macOS/Linux ; une version
-Windows portable (`onedir`) est publiée dans les releases GitHub.
+dépôt. **V6 reprend la V4 complète** et ajoute des applications distribuables
+pour macOS et Windows : les deux archives sont publiées dans les releases
+GitHub, sans installation de Python.
 
-**V4 est prête à être publiée sur GitHub** : les trois documents d'exemple
-sont entièrement synthétiques, sans nom réel, sans feuille morte, sans zone de
-texte résiduelle et sans métadonnée nominative. Voir
-[`examples/README.md`](examples/README.md).
+La V5 simplifiée (classeur Excel unique) est abandonnée. Les tags `v5.0.0` et
+`v5.0.1` restent disponibles dans l'historique, mais `main` repart de la V4
+(`v4.0.1`) et porte la V6.
 
-Périmètre verrouillé :
+## Périmètre verrouillé
 
 - un run complet par période ;
 - relance tous les 6 mois à partir des nouveaux documents de référence ;
-- **pas de reprise d'un planning précédent** (« round suivant » hors V4) ;
+- **pas de reprise d'un planning précédent** (« round suivant » hors V6) ;
 - le moteur est intégré dans `src/gardes/`, sans duplication.
 
-## Prérequis
+## Prérequis (depuis les sources)
 
 - Python 3.12
 - `uv`
@@ -45,17 +45,56 @@ ou, si le script est installé :
 .venv/bin/gardes-gui
 ```
 
-## Application Windows portable
+## Applications macOS et Windows
 
-Les releases GitHub contiennent l'archive
-`RAD-Gardes-Automator-windows-x64.zip` :
+Chaque release GitHub contient deux archives :
 
-1. télécharger l'archive depuis la dernière release ;
-2. l'extraire dans un dossier ;
-3. lancer `RAD-Gardes-Automator.exe`.
+| Plateforme | Archive | Lancement |
+|---|---|---|
+| macOS Apple Silicon | `RAD-Gardes-V6-macos-arm64.zip` | décompresser, ouvrir `RAD Gardes V6.app` |
+| Windows x64 | `RAD-Gardes-V6-windows-x64.zip` | décompresser, lancer `RAD Gardes V6.exe` |
 
-Aucune installation de Python n'est nécessaire. Les fichiers produits sont
-écrits par défaut dans `Documents/RAD Gardes Automator/run`.
+Aucune installation de Python n'est nécessaire. Les exemples synthétiques sont
+embarqués : à l'écran 1, cliquer sur « Charger les exemples ».
+
+- **macOS** : l'app est signée en ad-hoc. Au premier lancement, si macOS la
+  bloque : clic droit sur l'app > « Ouvrir » > « Ouvrir ».
+- **Windows** : la version est portable (`onedir`), à extraire où vous voulez.
+
+Les fichiers produits sont écrits par défaut dans
+`Documents/RAD Gardes Automator/run`.
+
+## Construire les applications
+
+Le même spec PyInstaller construit l'app macOS et le dossier Windows :
+`packaging/rad_gardes_v6.spec`. Il embarque le moteur, l'interface, PySide6,
+OR-Tools, pdfplumber et `examples/`.
+
+### macOS
+
+```bash
+packaging/build-macos.sh
+```
+
+Produit `dist/RAD Gardes V6.app` et
+`dist/RAD-Gardes-V6-macos-arm64.zip`. L'archive est créée avec `ditto` pour
+préserver les liens symboliques des frameworks Qt.
+
+### Windows
+
+```powershell
+packaging\build-windows.ps1
+```
+
+Produit `dist\RAD Gardes V6\` et
+`dist\RAD-Gardes-V6-windows-x64.zip`. Prérequis : Windows et Python 3.12.
+
+Les deux builds exposent les options de vérification utilisées par la CI :
+
+```bash
+"RAD Gardes V6" --self-test    # pipeline complet sur les exemples, sans UI
+"RAD Gardes V6" --smoke-test   # ouverture/fermeture de la fenêtre
+```
 
 ## Parcours
 
@@ -75,7 +114,7 @@ les personnes pré-remplies et le pool assignable.
 
 Les fichiers de `examples/` sont des données de démonstration anonymisées.
 Ils sont cohérents entre eux : les noms du PDF, du planning et des souhaits
-correspondent exactement.
+correspondent exactement. Ils sont embarqués dans les applications.
 
 | Fichier | Contenu |
 |---|---|
@@ -159,7 +198,8 @@ le planning ou dans les souhaits bloque l'étape avec un message explicite.
 
 ## Sorties
 
-Dans le dossier choisi (par défaut `data/run`) :
+Dans le dossier choisi (par défaut `data/run` en source, ou
+`Documents/RAD Gardes Automator/run` dans les applications) :
 
 - `gardes-a-remplir.json`
 - `calcul-gardes.json`
@@ -174,11 +214,12 @@ Dans le dossier choisi (par défaut `data/run`) :
 QT_QPA_PLATFORM=offscreen .venv/bin/pytest -q
 ```
 
-La suite V4 (**51 tests** : 7 GUI + 4 chemins + 40 moteur) couvre le
-contrôleur (pipeline complet, validation des crédits), un smoke test Qt qui
-parcourt les six écrans en mode `offscreen`, un test du thème sombre, les
-chemins source/onedir/onefile, le CLI et les steps 1 à 5.
-La CI GitHub Actions exécute la même suite sur Ubuntu.
+La suite (**52 tests** : 7 interface/contrôleur + 4 chemins + 41 moteur/CLI) couvre le contrôleur
+(pipeline complet, validation des crédits), un smoke test Qt qui parcourt les
+six écrans en mode `offscreen`, un test du thème sombre, les chemins
+source/onedir/onefile, le CLI et les steps 1 à 5.
+La CI GitHub Actions exécute la même suite sur Ubuntu et sur Windows (workflow
+de release).
 
 ## Structure
 
@@ -187,45 +228,42 @@ rad-gardes-automator/
 ├── examples/                  # PDF + classeurs synthétiques
 ├── src/gardes/                # moteur : steps 1 à 5, CLI, validation
 ├── src/gardes_gui/            # interface PySide6
-├── tests/                     # 51 tests
+├── tests/                     # 52 tests
 ├── scripts/                   # captures et entrée PyInstaller
 ├── docs/screenshots/          # aperçu README
-├── rad-gardes-automator.spec  # build Windows onedir
-└── .github/workflows/         # CI + release Windows
+├── packaging/                 # spec macOS/Windows, icônes, scripts, LISEZ-MOI
+└── .github/workflows/         # CI + release V6 (Windows)
 ```
 
-## Publier sur GitHub
-
-Le dépôt local est déjà initialisé sur la branche `main`. Pour créer le dépôt
-distant public et pousser :
+## Publier une release V6
 
 ```bash
-gh repo create rad-gardes-automator --public --source=. --remote=origin --push
+git tag v6.0.0
+git push origin v6.0.0
 ```
 
-Avant de publier, vérifier qu'aucun fichier réel n'a été ajouté dans
-`examples/` et que `data/` reste ignoré par Git.
+Le workflow `.github/workflows/release-v6.yml` construit alors l'application
+Windows en `onedir`, exécute les tests puis le self-test et le smoke test,
+crée l'archive ZIP et la publie dans la release GitHub.
 
-### Release Windows
-
-Le workflow `.github/workflows/release-windows.yml` construit l'application
-Windows en `onedir`, exécute un self-test du pipeline et un smoke test de
-l'interface, crée l'archive ZIP et la publie dans la release GitHub.
-
-Pour déclencher une release :
+L'application macOS se construit localement (les runners macOS ne sont pas
+disponibles sur cette installation GitHub Actions), puis son archive est
+ajoutée à la release :
 
 ```bash
-git tag v4.0.1
-git push origin v4.0.1
+packaging/build-macos.sh
+gh release upload v6.0.0 dist/RAD-Gardes-V6-macos-arm64.zip
 ```
 
 Le workflow peut aussi être lancé manuellement depuis l'onglet Actions ; dans
-ce cas l'archive est disponible comme artifact, sans création de release.
+ce cas l'archive Windows est disponible comme artifact, sans création de
+release.
 
-## Limites V4
+## Limites V6
 
+- macOS fourni pour Apple Silicon (`arm64`) uniquement ; pas d'universel.
 - Pas d'exécutable onefile ; la version Windows est fournie en `onedir`.
-- Pas de signature Windows/macOS.
+- Pas de signature Windows/macOS ni de notarisation.
 - Pas de round suivant : chaque période repart des trois documents de référence.
 - Pas de version été.
 - Le PDF et le planning sont calés sur le format des exemples fournis.
@@ -236,9 +274,10 @@ Voir `STATUS.md` pour l'état du build et la reprise.
 
 MIT — voir [`LICENSE`](LICENSE).
 
-Les composants tiers embarqués dans l'archive Windows sont listés dans
+Les composants tiers embarqués dans les archives sont listés dans
 [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md). Toutes les dépendances du
 moteur sont sous licence permissive (MIT, BSD, Apache-2.0) : l'extraction PDF
 utilise `pdfplumber` depuis la version 4.0.1, PyMuPDF (AGPL-3.0) ayant été
-retiré pour que l'exécutable puisse être distribué sous MIT. Seul PySide6/Qt
-est sous LGPL-3.0, utilisé non modifié et livré en DLL remplaçables.
+retiré pour que les exécutables puissent être distribués sous MIT. Seul
+PySide6/Qt est sous LGPL-3.0, utilisé non modifié et livré en bibliothèques
+remplaçables.

@@ -205,7 +205,7 @@ def cmd_run(args: argparse.Namespace) -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="gardes",
-        description="Attribution automatique des gardes radiologues — V4",
+        description="Attribution automatique des gardes radiologues — V6",
     )
     sub = parser.add_subparsers(dest="command")
 

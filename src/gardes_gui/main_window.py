@@ -66,7 +66,7 @@ class StepSidebar(QWidget):
             layout.addWidget(item)
             self.labels.append(item)
         layout.addStretch(1)
-        footer = QLabel("V4 — thème sombre")
+        footer = QLabel("V6 — thème sombre")
         footer.setObjectName("muted")
         footer.setContentsMargins(14, 8, 14, 0)
         footer.setWordWrap(True)
@@ -84,7 +84,7 @@ class StepSidebar(QWidget):
 class MainWindow(QMainWindow):
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
-        self.setWindowTitle("Gardes radiologues — V4")
+        self.setWindowTitle("Gardes radiologues — V6")
         self.resize(1240, 820)
         self.controller = PipelineController()
         self.worker: SolveWorker | None = None

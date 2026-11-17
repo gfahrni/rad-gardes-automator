@@ -9,6 +9,8 @@ htmlcov/
 data/
 build/
 dist/
+.build-venv/
+.build-work/
 *.egg-info/
 
 # Dossiers et documents locaux hors dépôt

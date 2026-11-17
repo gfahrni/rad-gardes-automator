@@ -1,0 +1,124 @@
+# Build V6 Windows portable : manuel ou tag v6*.
+# L'app macOS se construit localement (packaging/build-macos.sh) : les runners
+# macOS ne sont pas disponibles sur cette installation GitHub Actions. Le ZIP
+# macOS est ajouté à la release après le build local.
+name: release-v6
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v6*"
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Installer les dépendances
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,build]"
+
+      - name: Tests
+        env:
+          QT_QPA_PLATFORM: offscreen
+        run: python -m pytest -q
+
+      - name: Construire l'application onedir
+        run: pyinstaller packaging/rad_gardes_v6.spec --noconfirm --clean --distpath dist --workpath .build-work
+
+      - name: Ajouter les documents
+        shell: pwsh
+        run: |
+          $Dossier = "dist\RAD Gardes V6"
+          Copy-Item README.md $Dossier
+          Copy-Item LICENSE $Dossier
+          Copy-Item THIRD_PARTY_NOTICES.md $Dossier
+          Copy-Item -Recurse licenses $Dossier
+          Copy-Item packaging\LISEZ-MOI-windows.txt "$Dossier\LISEZ-MOI.txt"
+
+      - name: Vérifier l'absence de PyMuPDF (AGPL)
+        shell: pwsh
+        run: |
+          $hits = Get-ChildItem -Recurse "dist\RAD Gardes V6" |
+            Where-Object { $_.Name -match '(?i)(fitz|mupdf)' }
+          if ($hits) {
+            throw "Composant PyMuPDF/MuPDF détecté dans le build : $($hits.FullName -join ', ')"
+          }
+          Write-Host "Aucun composant PyMuPDF/MuPDF dans l'archive."
+
+      - name: Self-test du pipeline
+        shell: pwsh
+        run: |
+          $process = Start-Process `
+            -FilePath "dist\RAD Gardes V6\RAD Gardes V6.exe" `
+            -ArgumentList "--self-test" `
+            -Wait `
+            -PassThru
+          if ($process.ExitCode -ne 0) {
+            throw "Self-test pipeline échoué : code $($process.ExitCode)"
+          }
+          Write-Host "Self-test pipeline OK."
+
+      - name: Smoke test de l'interface
+        shell: pwsh
+        run: |
+          $env:QT_QPA_PLATFORM = "offscreen"
+          $process = Start-Process `
+            -FilePath "dist\RAD Gardes V6\RAD Gardes V6.exe" `
+            -ArgumentList "--smoke-test" `
+            -Wait `
+            -PassThru
+          if ($process.ExitCode -ne 0) {
+            throw "Smoke test UI échoué : code $($process.ExitCode)"
+          }
+
+      - name: Créer l'archive ZIP
+        shell: pwsh
+        run: |
+          Compress-Archive `
+            -Path "dist\RAD Gardes V6\*" `
+            -DestinationPath "dist\RAD-Gardes-V6-windows-x64.zip" `
+            -Force
+
+      - name: Publier l'artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: RAD-Gardes-V6-windows-x64
+          path: dist/RAD-Gardes-V6-windows-x64.zip
+          if-no-files-found: error
+
+      - name: Créer la release
+        if: startsWith(github.ref, 'refs/tags/v6')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: RAD Gardes Automator ${{ github.ref_name }}
+          body: |
+            RAD Gardes Automator V6 : la V4 complète (moteur + interface
+            PySide6, six écrans, solveur CP-SAT) avec applications macOS et
+            Windows.
+
+            **macOS (Apple Silicon)** : `RAD-Gardes-V6-macos-arm64.zip`
+            — décompresser puis lancer « RAD Gardes V6.app ». Au premier
+            lancement : clic droit > « Ouvrir ».
+
+            **Windows** : `RAD-Gardes-V6-windows-x64.zip`
+            — décompresser puis lancer « RAD Gardes V6.exe ».
+
+            Les exemples synthétiques sont embarqués : bouton
+            « Charger les exemples » à l'écran 1. Aucune installation de
+            Python n'est nécessaire.
+          files: dist/RAD-Gardes-V6-windows-x64.zip
+          fail_on_unmatched_files: true

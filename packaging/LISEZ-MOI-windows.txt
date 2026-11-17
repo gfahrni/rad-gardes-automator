@@ -1,0 +1,42 @@
+RAD Gardes Automator V6 — version portable Windows
+==================================================
+
+Contenu
+-------
+RAD Gardes V6.exe   l'application (double-clic)
+LISEZ-MOI.txt       ce fichier
+
+Les trois documents d'exemple sont embarqués dans l'application : aucun
+fichier à côté de l'exe. Le bouton « Charger les exemples » de l'écran 1
+les sélectionne.
+
+Essayer en une minute
+---------------------
+1. Lancer « RAD Gardes V6.exe ».
+2. Écran « Fichiers » : cliquer sur « Charger les exemples ».
+3. Cliquer sur « Commencer ».
+4. Écran « Planning » : vérifier le scan (181 jours, 88 trous, 24 fixes).
+5. Écran « Crédit de Gardes » : relire, puis « Faire valider ».
+6. Écran « Souhaits » : vérifier les couleurs et les avertissements.
+7. Écran « Attribution » : lancer le calcul (résultat attendu 87/88).
+8. Écran « Export » : écrire le planning rempli et le rapport.
+
+Les sorties sont écrites dans :
+%USERPROFILE%\Documents\RAD Gardes Automator\run
+
+Utiliser ses propres documents
+------------------------------
+Écran 1 : choisir le PDF des gardes, le planning Excel et les souhaits Excel.
+Le format attendu est décrit dans le README du dépôt :
+github.com/gfahrni/rad-gardes-automator
+
+Version macOS
+-------------
+RAD-Gardes-V6-macos-arm64.zip est la version macOS (Apple Silicon) :
+décompresser puis lancer « RAD Gardes V6.app ».
+
+Rien à installer : Python n'est pas nécessaire.
+
+Mises à jour
+------------
+Page Releases : github.com/gfahrni/rad-gardes-automator/releases

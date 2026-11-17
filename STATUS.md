@@ -1,14 +1,17 @@
-# STATUS — V4
+# STATUS — V6
 
 ## État
 
-**V4 prête pour GitHub.** Moteur et interface PySide6 sombre terminés, testés,
-avec trois documents d'exemple entièrement anonymisés.
+**V6 prête pour la release.** La V4 complète (moteur + interface PySide6) a
+été restaurée depuis le tag `v4.0.1`, puis dotée d'applications macOS et
+Windows. La V5 simplifiée est abandonnée ; ses tags `v5.0.x` restent dans
+l'historique.
 
-- Tests GUI : **7 verts** (3 contrôleur + 4 smoke Qt, dont le thème sombre).
-- Tests chemins : **4 verts** (source, onedir, onefile, dossier de travail).
-- Tests moteur : **40 verts** (steps 1 à 5 + CLI, référence métier).
-- Total : **51 tests verts**.
+- Tests : **52 verts** (7 interface/contrôleur + 4 chemins + 41 moteur/CLI).
+- App macOS : construite, signée ad-hoc, self-test et smoke test verts,
+  archive extraite et retestée.
+- App Windows : construite par la CI GitHub Actions sur tag `v6*`, avec
+  self-test, smoke test et archive ZIP.
 
 ```bash
 QT_QPA_PLATFORM=offscreen .venv/bin/pytest -q
@@ -37,6 +40,27 @@ pour rester dark.
 - Trou restant : **1 férié** (`2027-01-02` soir)
 - Fixes : **24** préservés
 - Solveur : OR-Tools CP-SAT 9.15.6755, `OPTIMAL`, ~0,2 s
+
+## Applications
+
+Un seul spec PyInstaller : `packaging/rad_gardes_v6.spec`. Il embarque le
+moteur, l'interface, PySide6, OR-Tools, pdfplumber, openpyxl et `examples/`.
+
+| Plateforme | Commande | Sortie |
+|---|---|---|
+| macOS Apple Silicon | `packaging/build-macos.sh` | `dist/RAD Gardes V6.app`, `dist/RAD-Gardes-V6-macos-arm64.zip` |
+| Windows x64 | `packaging/build-windows.ps1` | `dist\RAD Gardes V6\`, `dist\RAD-Gardes-V6-windows-x64.zip` |
+
+Vérifications intégrées aux builds :
+
+```bash
+"RAD Gardes V6" --self-test    # pipeline complet sur les exemples
+"RAD Gardes V6" --smoke-test   # ouverture/fermeture de la fenêtre Qt
+```
+
+L'app macOS est signée en ad-hoc (`codesign --force --deep --sign -`) et
+l'archive est créée avec `ditto --norsrc --noextattr` pour éviter les fichiers
+AppleDouble `._`. Taille constatée : app ~255 Mo, ZIP ~97 Mo.
 
 ## Exemples anonymisés
 
@@ -69,18 +93,26 @@ QT_QPA_PLATFORM=offscreen .venv/bin/pytest -q
 
 # Captures d'écran
 make screenshots
+
+# Applications
+packaging/build-macos.sh
+packaging/build-windows.ps1
 ```
 
-## Release Windows
+## Release V6
 
-Workflow : `.github/workflows/release-windows.yml`.
+Workflow : `.github/workflows/release-v6.yml`, déclenché par un tag `v6*`.
 
-- Déclenchement par tag `v*` ou manuellement.
-- Build `onedir` avec PyInstaller sur `windows-latest`.
-- Self-test du pipeline complet avec `--self-test`.
-- Smoke test de l'interface avec `--smoke-test`.
-- Archive `RAD-Gardes-Automator-windows-x64.zip` publiée dans la release.
-- En lancement manuel, l'archive reste un artifact GitHub Actions.
+1. `git tag v6.0.0 && git push origin v6.0.0`
+2. La CI teste le projet, construit l'app Windows, exécute `--self-test` et
+   `--smoke-test`, crée `RAD-Gardes-V6-windows-x64.zip` et la release.
+3. L'app macOS est construite localement (les runners macOS ne sont pas
+   disponibles sur cette installation GitHub Actions), puis ajoutée :
+
+```bash
+packaging/build-macos.sh
+gh release upload v6.0.0 dist/RAD-Gardes-V6-macos-arm64.zip
+```
 
 ## Architecture
 
@@ -89,47 +121,38 @@ Workflow : `.github/workflows/release-windows.yml`.
 - `src/gardes_gui/main_window.py` : fenêtre, sidebar, navigation, erreurs.
 - `src/gardes_gui/widgets/` : six écrans + widgets communs.
 - `src/gardes_gui/workers.py` : solveur CP-SAT en `QThread`.
-- `src/gardes/` : moteur (steps 1 à 5), intégré dans V4.
+- `src/gardes/` : moteur (steps 1 à 5), intégré dans V6.
+- `packaging/` : spec unique, icônes, scripts macOS/Windows, LISEZ-MOI.
 - `examples/` : documents synthétiques.
 - `scripts/generate_screenshots.py` : captures reproductibles.
 
 ## Décisions appliquées
 
-- GUI PySide6 depuis les sources.
-- Pas d'exécutable, pas de signature.
-- Pas de round suivant ; un run complet par période, relancé tous les 6 mois
-  à partir des nouveaux documents de référence.
-- Aucune persistance d'état entre deux runs.
-- Le pré-scan du planning reste obligatoire et bloque si les données sont
-  incohérentes.
+- **V6 = V4 complète + applications macOS/Windows.** La V5 simplifiée est
+  abandonnée ; `main` repart de `v4.0.1` et les tags `v5.0.x` sont conservés.
+- GUI PySide6 depuis les sources, un seul spec PyInstaller pour les deux OS.
+- App macOS construite et publiée localement ; exe Windows construit par la CI.
+- Signature macOS ad-hoc, pas de notarisation ; pas de signature Windows.
+- Le moteur est intégré dans `src/gardes` ; V6 est autonome.
+- Extraction PDF via `pdfplumber` (MIT) : PyMuPDF (AGPL-3.0) reste exclu.
 - Couleurs des souhaits : toute couleur non reconnue bloque avec la liste des
-  cellules fautives et les couleurs autorisées ; l'utilisateur corrige le
-  fichier puis relance. Rouge/vert en semaine restent des warnings.
-- Le moteur est intégré dans `src/gardes` ; V4 est autonome.
-- Extraction PDF via `pdfplumber` (MIT) depuis 4.0.1 : PyMuPDF (AGPL-3.0) a été
-  retiré pour que l'exécutable Windows puisse être distribué sous MIT.
+  cellules fautives et les couleurs autorisées.
 - Aucun nom de personne n'est codé en dur dans le moteur.
 
 ## Limites connues
 
+- macOS fourni pour Apple Silicon (`arm64`) uniquement ; pas d'universel.
 - Pas de onefile ; version Windows fournie en `onedir`.
-- Pas de signature Windows/macOS.
+- Pas de signature Windows/macOS ni de notarisation.
 - Pas de round suivant.
 - Pas de version été.
 - Géométrie PDF/planning calée sur les exemples.
-- V4 est autonome : aucune dépendance à un dossier voisin.
 
 ## Reprise / sécurité
 
 - Le dépôt est à la racine du projet, avec un historique Git propre.
-- Les 40 tests du moteur sont dans `tests/` et doivent rester verts.
+- La V4 reste accessible au tag `v4.0.1`, la V5 aux tags `v5.0.0`/`v5.0.1`.
 - En cas de reprise : `git log --oneline`, `cat STATUS.md`, puis
   `QT_QPA_PLATFORM=offscreen .venv/bin/pytest -q`.
 - Une erreur métier s'affiche dans une boîte de dialogue et laisse l'écran
   courant intact ; aucune correction silencieuse.
-
-## Étapes suivantes éventuelles
-
-- Exécutable onefile / signature Windows et macOS (hors périmètre V4).
-- Version été.
-- Mode « round suivant » (hors périmètre V4).
