@@ -2,17 +2,20 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QCloseEvent
+from PySide6.QtCore import Qt, QUrl
+from PySide6.QtGui import QCloseEvent, QDesktopServices
 from PySide6.QtWidgets import (
     QApplication,
+    QFileDialog,
     QFrame,
     QHBoxLayout,
     QLabel,
     QMainWindow,
     QMessageBox,
+    QPlainTextEdit,
+    QProgressBar,
     QPushButton,
-    QStackedWidget,
+    QSizePolicy,
     QVBoxLayout,
     QWidget,
 )
@@ -20,75 +23,22 @@ from PySide6.QtWidgets import (
 from gardes.errors import GardesError
 
 from .controller import PipelineController
-from .state import PipelineState
-from .widgets.attribution import AttributionView
-from .widgets.credit import CreditGardesView
-from .widgets.export import ExportView
-from .widgets.planning import PlanningView
-from .widgets.welcome import WelcomeView
-from .widgets.wishes import WishesView
-from .workers import SolveWorker
-
-STEP_LABELS = [
-    "1. Fichiers",
-    "2. Planning",
-    "3. Crédit de Gardes",
-    "4. Souhaits",
-    "5. Attribution",
-    "6. Export",
-]
-STEP_HINTS = [
-    "Choisis les trois documents de référence.",
-    "Vérifie le planning et ses pré-remplis.",
-    "Valide les crédits de gardes du run.",
-    "Vérifie les souhaits.",
-    "Analyse l'attribution.",
-    "Récupère le planning et le rapport.",
-]
-
-
-class StepSidebar(QWidget):
-    def __init__(self, parent: QWidget | None = None):
-        super().__init__(parent)
-        self.setObjectName("sidebar")
-        self.setFixedWidth(210)
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 16, 0, 16)
-        layout.setSpacing(2)
-        title = QLabel("ÉTAPES")
-        title.setObjectName("muted")
-        title.setContentsMargins(14, 0, 0, 8)
-        layout.addWidget(title)
-        self.labels: list[QLabel] = []
-        for label in STEP_LABELS:
-            item = QLabel(label)
-            item.setObjectName("stepItem")
-            layout.addWidget(item)
-            self.labels.append(item)
-        layout.addStretch(1)
-        footer = QLabel("V6 — thème sombre")
-        footer.setObjectName("muted")
-        footer.setContentsMargins(14, 8, 14, 0)
-        footer.setWordWrap(True)
-        layout.addWidget(footer)
-
-    def set_current(self, index: int) -> None:
-        for i, label in enumerate(self.labels):
-            label.setProperty("active", i == index)
-            label.setProperty("done", i < index)
-            label.style().unpolish(label)
-            label.style().polish(label)
-            label.update()
+from .paths import default_workdir, examples_dir
+from .widgets.common import Card, FileRow, MetricCard, SectionHeader
+from .workers import RunWorker
 
 
 class MainWindow(QMainWindow):
+    """Écran unique V7 : trois fichiers, un clic, deux sorties."""
+
     def __init__(self, parent: QWidget | None = None):
         super().__init__(parent)
-        self.setWindowTitle("Gardes radiologues — V6")
-        self.resize(1240, 820)
-        self.controller = PipelineController()
-        self.worker: SolveWorker | None = None
-        self._busy = False
+        self.setWindowTitle("Gardes radiologues — V7")
+        self.resize(1040, 860)
+        self.controller = PipelineController(persist=False)
+        self.worker: RunWorker | None = None
+        self.last_xlsx: Path | None = None
+        self.last_report: Path | None = None
 
         central = QWidget()
         root = QVBoxLayout(central)
@@ -101,62 +51,302 @@ class MainWindow(QMainWindow):
         header_layout.setContentsMargins(24, 14, 24, 14)
         titles = QVBoxLayout()
         titles.setSpacing(2)
-        self.title = QLabel("Gardes radiologues")
-        self.title.setObjectName("appTitle")
-        self.subtitle = QLabel("Hiver 2026/2027 — un run complet par période")
-        self.subtitle.setObjectName("appSubtitle")
-        titles.addWidget(self.title)
-        titles.addWidget(self.subtitle)
+        title = QLabel("Gardes radiologues")
+        title.setObjectName("appTitle")
+        subtitle = QLabel("V7 — trois fichiers, un clic, le planning et le rapport")
+        subtitle.setObjectName("appSubtitle")
+        titles.addWidget(title)
+        titles.addWidget(subtitle)
         header_layout.addLayout(titles)
         header_layout.addStretch(1)
-        self.restart_header = QPushButton("Recommencer")
-        header_layout.addWidget(self.restart_header)
         root.addWidget(header)
 
-        body = QHBoxLayout()
-        body.setContentsMargins(0, 0, 0, 0)
-        body.setSpacing(0)
-        self.sidebar = StepSidebar()
-        body.addWidget(self.sidebar)
-        self.stack = QStackedWidget()
-        self.welcome_view = WelcomeView()
-        self.planning_view = PlanningView()
-        self.credit_view = CreditGardesView()
-        self.wishes_view = WishesView()
-        self.attribution_view = AttributionView()
-        self.export_view = ExportView()
-        for view in (
-            self.welcome_view,
-            self.planning_view,
-            self.credit_view,
-            self.wishes_view,
-            self.attribution_view,
-            self.export_view,
+        content = QWidget()
+        layout = QVBoxLayout(content)
+        layout.setContentsMargins(24, 20, 24, 20)
+        layout.setSpacing(12)
+
+        layout.addWidget(
+            SectionHeader(
+                "Nouveau run",
+                "Choisis le PDF des gardes, le planning Excel et les souhaits Excel. "
+                "L'application valide et calcule tout en une fois.",
+            )
+        )
+
+        inputs = Card()
+        inputs.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
+        self.pdf_row = FileRow("PDF des gardes", "exemple-calcul-gardes.pdf")
+        self.planning_row = FileRow("Planning Excel", "exemple-planning-vide.xlsx")
+        self.wishes_row = FileRow("Souhaits Excel", "exemple-souhaits-garde.xlsx")
+        self.workdir_row = FileRow("Dossier de sortie", str(default_workdir()), directory=True)
+        self.workdir_row.set_path(str(default_workdir()))
+        for row in (self.pdf_row, self.planning_row, self.wishes_row, self.workdir_row):
+            inputs.layout.addWidget(row)
+
+        note = QLabel(
+            "Le dossier de sortie est créé si besoin. Le résultat y est écrit : "
+            "planning-rempli.xlsx et rapport.txt."
+        )
+        note.setObjectName("muted")
+        note.setWordWrap(True)
+        inputs.layout.addWidget(note)
+        layout.addWidget(inputs)
+
+        actions = QHBoxLayout()
+        self.examples_button = QPushButton("Charger les exemples")
+        self.run_button = QPushButton("Lancer")
+        self.run_button.setObjectName("primary")
+        actions.addWidget(self.examples_button)
+        actions.addStretch(1)
+        actions.addWidget(self.run_button)
+        layout.addLayout(actions)
+
+        self.progress = QProgressBar()
+        self.progress.setRange(0, 0)
+        self.progress.setFixedHeight(6)
+        self.progress.setVisible(False)
+        layout.addWidget(self.progress)
+
+        self.status_label = QLabel("Prêt.")
+        self.status_label.setObjectName("muted")
+        layout.addWidget(self.status_label)
+
+        self.result_card = Card()
+        self.result_card.setVisible(False)
+        result_titles = QHBoxLayout()
+        result_title = QLabel("Résultat")
+        result_title.setObjectName("sectionTitle")
+        result_titles.addWidget(result_title)
+        result_titles.addStretch(1)
+        self.open_folder_button = QPushButton("Ouvrir le dossier")
+        result_titles.addWidget(self.open_folder_button)
+        self.result_card.layout.addLayout(result_titles)
+
+        metrics = QHBoxLayout()
+        self.coverage_metric = MetricCard("Couverture")
+        self.red_metric = MetricCard("Rouges")
+        self.green_metric = MetricCard("Verts")
+        self.hole_metric = MetricCard("Trous restants")
+        for metric in (
+            self.coverage_metric,
+            self.red_metric,
+            self.green_metric,
+            self.hole_metric,
         ):
-            self.stack.addWidget(view)
-        body.addWidget(self.stack, 1)
-        root.addLayout(body, 1)
+            metrics.addWidget(metric)
+        self.result_card.layout.addLayout(metrics)
+
+        self.report_view = QPlainTextEdit()
+        self.report_view.setReadOnly(True)
+        self.report_view.setMinimumHeight(180)
+        self.report_view.setPlaceholderText("Le rapport s'affiche ici après le calcul.")
+        self.result_card.layout.addWidget(self.report_view, 1)
+
+        self.result_hint = QLabel("")
+        self.result_hint.setObjectName("muted")
+        self.result_hint.setWordWrap(True)
+        self.result_card.layout.addWidget(self.result_hint)
+
+        result_actions = QHBoxLayout()
+        self.open_xlsx_button = QPushButton("Ouvrir le planning rempli")
+        self.open_report_button = QPushButton("Ouvrir le rapport")
+        result_actions.addWidget(self.open_xlsx_button)
+        result_actions.addWidget(self.open_report_button)
+        result_actions.addStretch(1)
+        self.result_card.layout.addLayout(result_actions)
+
+        layout.addWidget(self.result_card, 1)
+        root.addWidget(content, 1)
         self.setCentralWidget(central)
 
-        self.welcome_view.start_requested.connect(self.on_start)
-        self.planning_view.next_requested.connect(self.on_planning_next)
-        self.credit_view.reload_requested.connect(self.on_reload)
-        self.credit_view.validate_requested.connect(self.on_credit_validate)
-        self.wishes_view.solve_requested.connect(self.on_solve)
-        self.attribution_view.export_requested.connect(self.on_export)
-        self.export_view.restart_requested.connect(self.on_restart)
-        self.restart_header.clicked.connect(self.on_restart)
+        # Signaux
+        self.pdf_row.button.clicked.connect(
+            lambda: self._pick_file(self.pdf_row, "Choisir le PDF", "PDF (*.pdf)")
+        )
+        self.planning_row.button.clicked.connect(
+            lambda: self._pick_file(
+                self.planning_row, "Choisir le planning", "Excel (*.xlsx *.xlsm)"
+            )
+        )
+        self.wishes_row.button.clicked.connect(
+            lambda: self._pick_file(
+                self.wishes_row, "Choisir les souhaits", "Excel (*.xlsx *.xlsm)"
+            )
+        )
+        self.workdir_row.button.clicked.connect(self._pick_directory)
+        self.examples_button.clicked.connect(self.load_examples)
+        self.run_button.clicked.connect(self.start_run)
+        self.open_folder_button.clicked.connect(self.open_folder)
+        self.open_xlsx_button.clicked.connect(lambda: self._open(self.last_xlsx))
+        self.open_report_button.clicked.connect(lambda: self._open(self.last_report))
 
         self.statusBar().showMessage("Prêt.")
-        self.show_step(0)
 
-    # ------------------------------------------------------------------ navigation
-    def show_step(self, index: int) -> None:
-        self.stack.setCurrentIndex(index)
-        self.sidebar.set_current(index)
-        self.subtitle.setText(
-            f"Hiver 2026/2027 — {STEP_HINTS[index]}"
+    # ------------------------------------------------------------------ fichiers
+    def _start_directory(self) -> str:
+        documents = Path.home() / "Documents"
+        return str(documents if documents.is_dir() else Path.home())
+
+    def _pick_file(self, row: FileRow, title: str, file_filter: str) -> None:
+        start = row.path()
+        if start:
+            path = Path(start)
+            start = str(path.parent if path.is_file() else path)
+        else:
+            start = self._start_directory()
+        selected, _ = QFileDialog.getOpenFileName(
+            self,
+            title,
+            start,
+            file_filter,
+            options=QFileDialog.Option.DontUseNativeDialog,
         )
+        if selected:
+            row.set_path(selected)
+
+    def _pick_directory(self) -> None:
+        start = self.workdir_row.path() or str(default_workdir())
+        path = Path(start)
+        if not path.is_dir():
+            start = self._start_directory()
+        selected = QFileDialog.getExistingDirectory(
+            self,
+            "Choisir le dossier de sortie",
+            start,
+            options=QFileDialog.Option.DontUseNativeDialog,
+        )
+        if selected:
+            self.workdir_row.set_path(selected)
+
+    def load_examples(self) -> None:
+        examples = examples_dir()
+        files = {
+            "pdf": examples / "exemple-calcul-gardes.pdf",
+            "planning": examples / "exemple-planning-vide.xlsx",
+            "wishes": examples / "exemple-souhaits-garde.xlsx",
+        }
+        missing = [str(path) for path in files.values() if not path.exists()]
+        if missing:
+            QMessageBox.warning(
+                self,
+                "Exemples introuvables",
+                "Fichiers absents :\n" + "\n".join(missing),
+            )
+            return
+        self.pdf_row.set_path(str(files["pdf"]))
+        self.planning_row.set_path(str(files["planning"]))
+        self.wishes_row.set_path(str(files["wishes"]))
+        self.workdir_row.set_path(str(default_workdir()))
+        self._clear_result()
+        self.status_label.setText("Exemples chargés. Clique sur « Lancer ».")
+
+    # ------------------------------------------------------------------ run
+    def _read_inputs(self) -> tuple[str, str, str, str] | None:
+        pdf = self.pdf_row.path()
+        planning = self.planning_row.path()
+        wishes = self.wishes_row.path()
+        workdir = self.workdir_row.path()
+        if not all((pdf, planning, wishes, workdir)):
+            QMessageBox.warning(
+                self,
+                "Fichiers manquants",
+                "Choisis le PDF, le planning, les souhaits et le dossier de sortie.",
+            )
+            return None
+        return pdf, planning, wishes, workdir
+
+    def _prepare_run(self) -> bool:
+        values = self._read_inputs()
+        if values is None:
+            return False
+        self.controller = PipelineController(persist=False)
+        try:
+            self.controller.set_inputs(*values)
+        except Exception as exc:  # noqa: BLE001
+            self._error("Fichiers d'entrée", exc)
+            return False
+        self._clear_result()
+        return True
+
+    def start_run(self) -> None:
+        if self.worker is not None:
+            return
+        if not self._prepare_run():
+            return
+        self._set_busy(True)
+        self.status_label.setText("Calcul en cours…")
+        self.worker = RunWorker(self.controller, self)
+        self.worker.completed.connect(self._on_completed)
+        self.worker.failed.connect(self._on_failed)
+        self.worker.finished.connect(self._on_worker_finished)
+        self.worker.start()
+
+    def _on_completed(self, payload: dict) -> None:
+        self._show_result(payload)
+        self.status_label.setText(
+            f"Terminé — {payload['xlsx']}"
+        )
+
+    def _on_failed(self, message: str) -> None:
+        self._set_busy(False)
+        self._error("Calcul impossible", message)
+        self.status_label.setText("Erreur — corrige les fichiers puis réessaie.")
+
+    def _on_worker_finished(self) -> None:
+        self._set_busy(False)
+        if self.worker is not None:
+            self.worker.deleteLater()
+            self.worker = None
+
+    def _show_result(self, payload: dict) -> None:
+        attribution = payload["attribution"]
+        objective = attribution.get("objective", {})
+        counts = attribution.get("counts", {})
+        coverage = objective.get("coverage", 0)
+        holes = counts.get("holes", 0)
+        self.coverage_metric.set_value(f"{coverage}/{holes}")
+        self.red_metric.set_value(str(objective.get("red_forced", 0)))
+        self.green_metric.set_value(str(objective.get("green", 0)))
+        self.hole_metric.set_value(str(counts.get("empty", 0)))
+        self.report_view.setPlainText(payload.get("report_text", ""))
+        self.last_xlsx = Path(payload["xlsx"])
+        self.last_report = Path(payload["report"])
+        self.result_hint.setText(f"Écrit dans : {self.last_xlsx.parent}")
+        self.result_card.setVisible(True)
+
+    def _clear_result(self) -> None:
+        self.result_card.setVisible(False)
+        self.report_view.clear()
+        self.result_hint.setText("")
+        self.last_xlsx = None
+        self.last_report = None
+
+    def _set_busy(self, busy: bool) -> None:
+        for row in (self.pdf_row, self.planning_row, self.wishes_row, self.workdir_row):
+            row.line_edit.setEnabled(not busy)
+            row.button.setEnabled(not busy)
+        self.examples_button.setEnabled(not busy)
+        self.run_button.setEnabled(not busy)
+        self.run_button.setText("Calcul en cours…" if busy else "Lancer")
+        self.progress.setVisible(busy)
+        if busy:
+            QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
+        else:
+            QApplication.restoreOverrideCursor()
+
+    # ------------------------------------------------------------------ sorties
+    def _open(self, path: Path | None) -> None:
+        if path is None or not path.exists():
+            QMessageBox.warning(self, "Fichier introuvable", "Le fichier n'existe pas encore.")
+            return
+        QDesktopServices.openUrl(QUrl.fromLocalFile(str(path)))
+
+    def open_folder(self) -> None:
+        if self.last_xlsx is not None and self.last_xlsx.parent.exists():
+            self._open(self.last_xlsx.parent)
+        else:
+            self._open(Path(self.workdir_row.path() or default_workdir()))
 
     def _error(self, title: str, exc: Exception | str) -> None:
         message = str(exc)
@@ -170,146 +360,8 @@ class MainWindow(QMainWindow):
         if details:
             box.setDetailedText(details)
         box.exec()
-        self.statusBar().showMessage("Erreur — corrige les données puis réessaie.")
 
-    # ------------------------------------------------------------------ actions
-    def on_start(
-        self,
-        pdf: str,
-        planning: str,
-        wishes: str,
-        workdir: str,
-    ) -> None:
-        try:
-            self.controller.set_inputs(pdf, planning, wishes, workdir)
-            data = self.controller.scan_planning()
-            self.planning_view.populate(data)
-            self.show_step(1)
-            self.statusBar().showMessage(
-                f"Planning scanné : {data['counts']['holes']} trous, "
-                f"{data['counts']['fixed']} fixes."
-            )
-        except Exception as exc:  # noqa: BLE001
-            self._error("Impossible de scanner le planning", exc)
-
-    def on_planning_next(self) -> None:
-        try:
-            calcul = self.controller.build_calcul()
-            self.credit_view.populate(calcul)
-            self.show_step(2)
-            self.statusBar().showMessage(
-                f"Crédits chargés : {len(calcul['candidates'])} personnes assignables."
-            )
-        except Exception as exc:  # noqa: BLE001
-            self._error("Impossible de lire le PDF", exc)
-
-    def on_reload(self) -> None:
-        try:
-            calcul = self.controller.build_calcul()
-            self.credit_view.populate(calcul)
-            self.statusBar().showMessage("Crédits rechargés depuis le PDF.")
-        except Exception as exc:  # noqa: BLE001
-            self._error("Impossible de recharger le PDF", exc)
-
-    def on_credit_validate(self) -> None:
-        try:
-            self.controller.validate_people()
-            wishes = self.controller.scan_wishes()
-            self.wishes_view.populate(wishes)
-            self.show_step(3)
-            self.statusBar().showMessage(
-                f"Souhaits lus : {wishes['counts']['people']} personnes, "
-                f"{wishes['counts']['dates']} dates."
-            )
-        except Exception as exc:  # noqa: BLE001
-            self._error("Validation impossible", exc)
-
-    def on_solve(self) -> None:
-        if self.worker is not None:
-            return
-        self._busy = True
-        self.wishes_view.solve_button.setEnabled(False)
-        self.statusBar().showMessage("Résolution CP-SAT en cours…")
-        QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
-        self.worker = SolveWorker(self.controller, self)
-        self.worker.solved.connect(self._on_solved)
-        self.worker.failed.connect(self._on_solve_failed)
-        self.worker.finished.connect(self._on_worker_finished)
-        self.worker.start()
-
-    def _on_solved(self, attribution: dict) -> None:
-        self.attribution_view.populate(attribution)
-        self.show_step(4)
-        self.statusBar().showMessage(
-            "Attribution calculée : "
-            f"{attribution['objective']['coverage']}/{attribution['counts']['holes']} "
-            f"couverts, {attribution['objective']['red_forced']} rouges."
-        )
-
-    def _on_solve_failed(self, message: str) -> None:
-        self._error("Résolution impossible", message)
-
-    def _on_worker_finished(self) -> None:
-        if self._busy:
-            QApplication.restoreOverrideCursor()
-            self._busy = False
-        self.wishes_view.solve_button.setEnabled(True)
-        if self.worker is not None:
-            self.worker.deleteLater()
-            self.worker = None
-
-    def on_export(self) -> None:
-        try:
-            out_xlsx, report = self.controller.export()
-            report_text = Path(report).read_text(encoding="utf-8")
-            self.export_view.populate(
-                out_xlsx, report, report_text, self.controller.state.attribution or {}
-            )
-            self.show_step(5)
-            self.statusBar().showMessage(f"Export terminé : {out_xlsx}")
-        except Exception as exc:  # noqa: BLE001
-            self._error("Export impossible", exc)
-
-    def on_restart(self) -> None:
-        if self.worker is not None:
-            QMessageBox.information(
-                self,
-                "Calcul en cours",
-                "Attends la fin de la résolution avant de recommencer.",
-            )
-            return
-        has_data = any(
-            x is not None
-            for x in (
-                self.controller.state.planning,
-                self.controller.state.calcul,
-                self.controller.state.wishes,
-                self.controller.state.attribution,
-            )
-        )
-        if has_data:
-            answer = QMessageBox.question(
-                self,
-                "Recommencer",
-                "Recommencer un run depuis les fichiers ? L'état courant sera perdu.",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            )
-            if answer != QMessageBox.StandardButton.Yes:
-                return
-        self.controller = PipelineController()
-        for view in (
-            self.planning_view,
-            self.credit_view,
-            self.wishes_view,
-            self.attribution_view,
-            self.export_view,
-        ):
-            if hasattr(view, "clear"):
-                view.clear()
-        self.show_step(0)
-        self.statusBar().showMessage("Prêt pour un nouveau run.")
-
-    # ------------------------------------------------------------------ test hooks
+    # ------------------------------------------------------------------ tests
     def load_inputs(
         self,
         pdf: str,
@@ -317,23 +369,32 @@ class MainWindow(QMainWindow):
         wishes: str,
         workdir: str,
     ) -> None:
-        self.on_start(pdf, planning, wishes, workdir)
+        self.pdf_row.set_path(str(pdf))
+        self.planning_row.set_path(str(planning))
+        self.wishes_row.set_path(str(wishes))
+        self.workdir_row.set_path(str(workdir))
 
-    def go_to_credit(self) -> None:
-        self.on_planning_next()
-
-    def validate_credit(self) -> None:
-        self.on_credit_validate()
-
-    def solve_now(self) -> None:
-        attribution = self.controller.solve()
-        self.attribution_view.populate(attribution)
-        self.show_step(4)
-
-    def export_now(self) -> None:
-        self.on_export()
+    def run_now(self) -> None:
+        """Exécution synchrone, pour les tests."""
+        if not self._prepare_run():
+            return
+        attribution, out_xlsx, report = self.controller.run_complete()
+        payload = {
+            "attribution": attribution,
+            "xlsx": str(out_xlsx),
+            "report": str(report),
+            "report_text": Path(report).read_text(encoding="utf-8"),
+        }
+        self._show_result(payload)
+        self.status_label.setText(f"Terminé — {payload['xlsx']}")
 
     def closeEvent(self, event: QCloseEvent) -> None:
-        if self.worker is not None:
-            self.worker.wait(10_000)
+        if self.worker is not None and self.worker.isRunning():
+            QMessageBox.information(
+                self,
+                "Calcul en cours",
+                "Attends la fin du calcul avant de fermer l'application.",
+            )
+            event.ignore()
+            return
         super().closeEvent(event)

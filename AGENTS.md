@@ -1,8 +1,8 @@
 # AGENTS.md — consignes de travail
 
-Projet : **RAD Gardes Automator V6** — moteur Python + interface PySide6,
-avec applications macOS et Windows. Code dans `src/gardes/` et
-`src/gardes_gui/`, tests dans `tests/`, packaging dans `packaging/`.
+Projet : **RAD Gardes Automator V7** — moteur Python + interface PySide6
+à écran unique, avec applications macOS et Windows. Code dans `src/gardes/`
+et `src/gardes_gui/`, tests dans `tests/`, packaging dans `packaging/`.
 Ce dossier est synchronisé par **Syncthing** entre plusieurs machines.
 
 ## Règle absolue : aucun `.git` dans ce dossier
@@ -16,8 +16,9 @@ et corrompt le dépôt. Donc :
   pointant hors du dossier (voir ci-dessous).
 
 Dépôt distant : `git@github.com:gfahrni/rad-gardes-automator.git`
-(branche `main`). La V6 repart de la V4 (`v4.0.1`) ; la V5 simplifiée est
-abandonnée mais ses tags `v5.0.x` restent dans l'historique.
+(branche `main`). La V7 succède à la V6 (tag `v6.0.0`), elle-même issue de
+la V4 (`v4.0.1`) ; la V5 simplifiée est abandonnée mais ses tags `v5.0.x`
+restent dans l'historique.
 
 ## Interagir avec GitHub
 
@@ -73,7 +74,7 @@ git ls-remote git@github.com:gfahrni/rad-gardes-automator.git refs/heads/main
 
 Le SHA distant doit correspondre au dernier commit local. Un push sur
 `main` déclenche la CI GitHub Actions (`.github/workflows/tests.yml`).
-Un tag `v6*` déclenche `.github/workflows/release-v6.yml` (exe Windows +
+Un tag `v7*` déclenche `.github/workflows/release-v7.yml` (exe Windows +
 release). L'app macOS se construit localement
 (`packaging/build-macos.sh`) puis son ZIP est ajouté à la release avec
 `gh release upload`.

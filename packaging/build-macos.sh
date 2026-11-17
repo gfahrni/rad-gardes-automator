@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Construit l'application macOS et son archive : dist/RAD Gardes V6.app
-# et dist/RAD-Gardes-V6-macos-<arch>.zip.
+# Construit l'application macOS et son archive : dist/RAD Gardes V7.app
+# et dist/RAD-Gardes-V7-macos-<arch>.zip.
 set -euo pipefail
 
 RACINE="$(cd "$(dirname "$0")/.." && pwd)"
@@ -15,12 +15,12 @@ if [ ! -x "$VENV/bin/python" ]; then
 fi
 uv pip install --python "$VENV/bin/python" -e ".[build]"
 
-"$VENV/bin/pyinstaller" packaging/rad_gardes_v6.spec \
+"$VENV/bin/pyinstaller" packaging/rad_gardes_v7.spec \
   --noconfirm --clean --distpath dist --workpath .build-work
 
-APP="dist/RAD Gardes V6.app"
+APP="dist/RAD Gardes V7.app"
 ARCH="$(uname -m)"
-ZIP="dist/RAD-Gardes-V6-macos-${ARCH}.zip"
+ZIP="dist/RAD-Gardes-V7-macos-${ARCH}.zip"
 
 # Signature ad-hoc : l'app se lance localement, sans identité développeur.
 codesign --force --deep --sign - "$APP" >/dev/null 2>&1 || true

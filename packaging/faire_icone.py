@@ -75,7 +75,7 @@ def dessiner(taille: int = 1024) -> Image.Image:
 
     # Numéro de version
     police = _police(int(taille * 0.14))
-    texte = "V6"
+    texte = "V7"
     if police is not None:
         boite = dessin.textbbox((0, 0), texte, font=police)
         largeur_texte = boite[2] - boite[0]

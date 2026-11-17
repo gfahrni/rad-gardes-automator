@@ -10,7 +10,7 @@ def test_source_paths() -> None:
     root = Path(__file__).resolve().parents[1]
     assert paths.is_frozen() is False
     assert paths.examples_dir() == root / "examples"
-    assert paths.default_workdir() == root / "data" / "run"
+    assert paths.default_workdir() == Path.home() / "Documents" / "RAD Gardes Automator" / "run"
 
 
 def test_frozen_examples_from_bundle(monkeypatch, tmp_path: Path) -> None:

@@ -45,19 +45,21 @@ def _self_test() -> int:
         return 2
 
     with tempfile.TemporaryDirectory(prefix="rad-gardes-self-test-") as workdir:
-        controller = PipelineController()
+        controller = PipelineController(persist=False)
         controller.set_inputs(
             files["pdf"],
             files["planning"],
             files["wishes"],
             Path(workdir),
         )
-        attribution = controller.run_auto()
-        controller.export()
+        attribution, out_xlsx, report = controller.run_complete()
         objective = attribution.get("objective", {})
         if objective.get("coverage") != 87:
             print(f"Couverture inattendue : {objective!r}")
             return 3
+        if not out_xlsx.exists() or not report.exists():
+            print("Sorties manquantes : planning-rempli.xlsx ou rapport.txt")
+            return 4
     return 0
 
 
@@ -70,7 +72,7 @@ def main(argv: list[str] | None = None) -> int:
     qt_argv = [arg for arg in raw_argv if arg != "--smoke-test"]
 
     app = QApplication.instance() or QApplication(qt_argv)
-    app.setApplicationName("Gardes radiologues")
+    app.setApplicationName("RAD Gardes Automator")
     app.setOrganizationName("Projet gardes")
     apply_theme(app)
     window = MainWindow()

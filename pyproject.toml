@@ -4,8 +4,8 @@ build-backend = "hatchling.build"
 
 [project]
 name = "rad-gardes-automator"
-version = "6.0.0"
-description = "Attribution automatique des gardes de radiologues — moteur et interface PySide6 (V6, apps macOS et Windows)"
+version = "7.0.0"
+description = "Attribution automatique des gardes de radiologues — écran unique PySide6 (V7, apps macOS et Windows)"
 readme = "README.md"
 license = { text = "MIT" }
 authors = [{ name = "Projet Gardes" }]

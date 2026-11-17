@@ -37,6 +37,4 @@ def examples_dir() -> Path:
 
 def default_workdir() -> Path:
     """Dossier de sortie par défaut, toujours inscriptible par l'utilisateur."""
-    if is_frozen():
-        return Path.home() / "Documents" / "RAD Gardes Automator" / "run"
-    return source_root() / "data" / "run"
+    return Path.home() / "Documents" / "RAD Gardes Automator" / "run"

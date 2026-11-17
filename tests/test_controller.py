@@ -62,3 +62,18 @@ def test_inputs_are_required(tmp_path: Path) -> None:
         assert "Choisis" in str(exc) or "fichiers" in str(exc).lower()
     else:
         raise AssertionError("Une erreur était attendue")
+
+
+def test_run_complete_without_intermediate_files(
+    pdf: Path, planning_xlsx: Path, wishes_xlsx: Path, tmp_path: Path
+) -> None:
+    controller = PipelineController(persist=False)
+    controller.set_inputs(pdf, planning_xlsx, wishes_xlsx, tmp_path / "run")
+    attribution, out_xlsx, report = controller.run_complete()
+    assert attribution["objective"] == {"coverage": 87, "red_forced": 3, "green": 74}
+    assert out_xlsx.exists()
+    assert report.exists()
+    assert {p.name for p in (tmp_path / "run").iterdir()} == {
+        "planning-rempli.xlsx",
+        "rapport.txt",
+    }

@@ -1,8 +1,9 @@
 # Licences des composants tiers
 
 RAD Gardes Automator est distribué sous licence MIT (voir [`LICENSE`](LICENSE)).
-L'archive Windows `RAD-Gardes-Automator-windows-x64.zip` embarque les
-composants ci-dessous. Tous sont compatibles avec une distribution MIT, à
+Les archives macOS `RAD-Gardes-V7-macos-arm64.zip` et Windows
+`RAD-Gardes-V7-windows-x64.zip` embarquent les composants ci-dessous.
+Tous sont compatibles avec une distribution MIT, à
 l'exception de PySide6/Qt (LGPL-3.0), dont les obligations sont rappelées en
 fin de document.
 
@@ -13,7 +14,7 @@ fin de document.
 | [OR-Tools](https://github.com/google/or-tools) | 9.15.6755 | Apache-2.0 | Solveur CP-SAT (étape 4) |
 | [pdfplumber](https://github.com/jsvine/pdfplumber) | 0.11.10 | MIT | Extraction des mots et de leurs coordonnées dans le PDF (étape 1) |
 | [pdfminer.six](https://github.com/pdfminer/pdfminer.six) | 20260107 | MIT | Moteur d'analyse PDF utilisé par pdfplumber |
-| [pypdfium2](https://github.com/pypdfium2-team/pypdfium2) | 5.14.0 | Apache-2.0 / BSD-3-Clause | Rendu PDF (dépendance de pdfplumber) |
+| [pypdfium2](https://github.com/pypdfium2-team/pypdfium2) | 5.15.2 | Apache-2.0 / BSD-3-Clause | Rendu PDF (dépendance de pdfplumber) |
 | [PDFium](https://pdfium.googlesource.com/pdfium/) | — | BSD-3-Clause | Moteur de rendu embarqué dans pypdfium2 |
 | [Pillow](https://github.com/python-pillow/Pillow) | 13.0.0 | MIT-CMU (HPND) | Traitement d'images (dépendance de pdfplumber) |
 | [cryptography](https://github.com/pyca/cryptography) | 50.0.2 | Apache-2.0 OR BSD-3-Clause | PDF chiffrés (dépendance de pdfminer.six) |

@@ -32,8 +32,13 @@ def main() -> None:
     workdir.mkdir(parents=True, exist_ok=True)
 
     window = MainWindow()
-    window.resize(1240, 820)
-    window.welcome_view.workdir_row.set_path(str(workdir))
+    window.resize(1040, 900)
+    window.load_inputs(
+        str(demo / "examples" / "exemple-calcul-gardes.pdf"),
+        str(demo / "examples" / "exemple-planning-vide.xlsx"),
+        str(demo / "examples" / "exemple-souhaits-garde.xlsx"),
+        str(workdir),
+    )
     window.show()
     app.processEvents()
 
@@ -41,22 +46,9 @@ def main() -> None:
         app.processEvents()
         window.grab().save(str(OUT / name))
 
-    shot("00-welcome.png")
-    window.load_inputs(
-        str(demo / "examples" / "exemple-calcul-gardes.pdf"),
-        str(demo / "examples" / "exemple-planning-vide.xlsx"),
-        str(demo / "examples" / "exemple-souhaits-garde.xlsx"),
-        str(workdir),
-    )
-    shot("01-planning.png")
-    window.go_to_credit()
-    shot("02-credit.png")
-    window.validate_credit()
-    shot("03-wishes.png")
-    window.solve_now()
-    shot("04-attribution.png")
-    window.export_now()
-    shot("05-export.png")
+    shot("00-nouveau-run.png")
+    window.run_now()
+    shot("01-resultat.png")
     window.close()
     shutil.rmtree(demo, ignore_errors=True)
 

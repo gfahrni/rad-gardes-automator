@@ -1,39 +1,40 @@
-RAD Gardes Automator V6 — version portable Windows
+RAD Gardes Automator V7 — version portable Windows
 ==================================================
 
 Contenu
 -------
-RAD Gardes V6.exe   l'application (double-clic)
+RAD Gardes V7.exe   l'application (double-clic)
 LISEZ-MOI.txt       ce fichier
 
 Les trois documents d'exemple sont embarqués dans l'application : aucun
-fichier à côté de l'exe. Le bouton « Charger les exemples » de l'écran 1
-les sélectionne.
+fichier à côté de l'exe.
 
 Essayer en une minute
 ---------------------
-1. Lancer « RAD Gardes V6.exe ».
-2. Écran « Fichiers » : cliquer sur « Charger les exemples ».
-3. Cliquer sur « Commencer ».
-4. Écran « Planning » : vérifier le scan (181 jours, 88 trous, 24 fixes).
-5. Écran « Crédit de Gardes » : relire, puis « Faire valider ».
-6. Écran « Souhaits » : vérifier les couleurs et les avertissements.
-7. Écran « Attribution » : lancer le calcul (résultat attendu 87/88).
-8. Écran « Export » : écrire le planning rempli et le rapport.
+1. Lancer « RAD Gardes V7.exe ».
+2. Cliquer sur « Charger les exemples ».
+3. Cliquer sur « Lancer ».
+4. Le résultat s'affiche : 87/88, 3 rouges, 74 verts, 1 trou restant.
+5. Les boutons ouvrent le planning rempli, le rapport ou le dossier.
 
-Les sorties sont écrites dans :
+Avec ses propres fichiers
+-------------------------
+Écran unique : choisir le PDF des gardes, le planning Excel et les souhaits
+Excel, puis « Lancer ». Le dossier de sortie proposé par défaut est :
 %USERPROFILE%\Documents\RAD Gardes Automator\run
 
-Utiliser ses propres documents
-------------------------------
-Écran 1 : choisir le PDF des gardes, le planning Excel et les souhaits Excel.
-Le format attendu est décrit dans le README du dépôt :
-github.com/gfahrni/rad-gardes-automator
+Deux fichiers y sont écrits :
+- planning-rempli.xlsx  le planning avec les gardes attribuées
+- rapport.txt           le rapport complet
+
+Aucune étape intermédiaire : l'application valide et calcule tout en une
+fois. Si un fichier est incohérent, un message explique ce qu'il faut
+corriger.
 
 Version macOS
 -------------
-RAD-Gardes-V6-macos-arm64.zip est la version macOS (Apple Silicon) :
-décompresser puis lancer « RAD Gardes V6.app ».
+RAD-Gardes-V7-macos-arm64.zip est la version macOS (Apple Silicon) :
+décompresser puis lancer « RAD Gardes V7.app ».
 
 Rien à installer : Python n'est pas nécessaire.
 

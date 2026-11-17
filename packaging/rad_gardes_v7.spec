@@ -1,8 +1,8 @@
 # -*- mode: python ; coding: utf-8 -*-
 """Spec PyInstaller unique : .app sur macOS, dossier portable (onedir) sur Windows.
 
-macOS  : pyinstaller packaging/rad_gardes_v6.spec --noconfirm
-Windows: pyinstaller packaging\\rad_gardes_v6.spec --noconfirm
+macOS  : pyinstaller packaging/rad_gardes_v7.spec --noconfirm
+Windows: pyinstaller packaging\\rad_gardes_v7.spec --noconfirm
 
 L'application embarque le moteur, l'interface PySide6 et les exemples
 synthétiques de ``examples/``. Le self-test ``--self-test`` et le smoke test
@@ -17,8 +17,8 @@ from pathlib import Path
 from PyInstaller.utils.hooks import collect_all
 
 RACINE = Path(SPECPATH).resolve().parent
-NOM = "RAD Gardes V6"
-VERSION = "6.0.0"
+NOM = "RAD Gardes V7"
+VERSION = "7.0.0"
 
 datas = [(str(RACINE / "examples"), "examples")]
 binaries = []
@@ -88,7 +88,7 @@ if sys.platform == "darwin":
         coll,
         name=f"{NOM}.app",
         icon=str(RACINE / "packaging" / "icone.icns"),
-        bundle_identifier="ch.gfahrni.radgardes.v6",
+        bundle_identifier="ch.gfahrni.radgardes.v7",
         info_plist={
             "CFBundleName": NOM,
             "CFBundleDisplayName": NOM,

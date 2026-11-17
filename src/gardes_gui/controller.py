@@ -17,8 +17,9 @@ from .state import PipelineState
 class PipelineController:
     """Orchestration sans Qt, réutilisable par la GUI et les tests."""
 
-    def __init__(self, state: PipelineState | None = None):
+    def __init__(self, state: PipelineState | None = None, *, persist: bool = True):
         self.state = state or PipelineState()
+        self.persist = persist
 
     # ------------------------------------------------------------------ entrées
     def set_inputs(
@@ -50,7 +51,8 @@ class PipelineController:
         self._require_inputs()
         assert self.state.planning_path is not None
         planning = parse_planning(self.state.planning_path)
-        write_planning_json(planning, self.state.planning_json)
+        if self.persist:
+            write_planning_json(planning, self.state.planning_json)
         self.state.planning = planning
         self.state.reset_downstream("planning")
         return planning
@@ -64,7 +66,8 @@ class PipelineController:
             self.state.pdf_path,
             planning_path=self.state.planning_path,
         )
-        write_calcul(calcul, self.state.calcul_json)
+        if self.persist:
+            write_calcul(calcul, self.state.calcul_json)
         self.state.calcul = calcul
         self.state.calcul_validated = False
         self.state.reset_downstream("calcul")
@@ -76,7 +79,8 @@ class PipelineController:
         if people is not None:
             self.state.calcul["people"] = people
         calcul = validate_calcul(self.state.calcul)
-        write_calcul(calcul, self.state.calcul_json)
+        if self.persist:
+            write_calcul(calcul, self.state.calcul_json)
         self.state.calcul = calcul
         self.state.calcul_validated = True
         self.state.reset_downstream("calcul")
@@ -91,7 +95,8 @@ class PipelineController:
             raise GardesError("Le planning n'est pas scanné.", code="planning_missing")
         assert self.state.wishes_path is not None
         wishes = parse_wishes(self.state.wishes_path, self.state.calcul, self.state.planning)
-        write_wishes(wishes, self.state.wishes_json)
+        if self.persist:
+            write_wishes(wishes, self.state.wishes_json)
         self.state.wishes = wishes
         self.state.reset_downstream("wishes")
         self.state.wishes = wishes
@@ -100,17 +105,26 @@ class PipelineController:
     def solve(self) -> dict:
         if self.state.calcul is None or self.state.planning is None or self.state.wishes is None:
             raise GardesError("Les étapes précédentes ne sont pas terminées.", code="pipeline_incomplete")
+        if self.persist:
+            input_paths = {
+                "calcul": self.state.calcul_json,
+                "planning": self.state.planning_json,
+                "souhaits": self.state.wishes_json,
+            }
+        else:
+            input_paths = {
+                "calcul": self.state.pdf_path,
+                "planning": self.state.planning_path,
+                "souhaits": self.state.wishes_path,
+            }
         attribution = solve_attribution(
             self.state.calcul,
             self.state.planning,
             self.state.wishes,
-            input_paths={
-                "calcul": self.state.calcul_json,
-                "planning": self.state.planning_json,
-                "souhaits": self.state.wishes_json,
-            },
+            input_paths=input_paths,
         )
-        write_json(self.state.attribution_json, attribution)
+        if self.persist:
+            write_json(self.state.attribution_json, attribution)
         self.state.attribution = attribution
         return attribution
 
@@ -140,6 +154,12 @@ class PipelineController:
             ),
         )
         return out_xlsx, report
+
+    def run_complete(self) -> tuple[dict, Path, Path]:
+        """Pipeline complet + export, en une seule opération."""
+        attribution = self.run_auto()
+        out_xlsx, report = self.export()
+        return attribution, out_xlsx, report
 
     # ------------------------------------------------------------------ tests
     def run_auto(self) -> dict:

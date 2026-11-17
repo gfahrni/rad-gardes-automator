@@ -1,18 +1,12 @@
 from __future__ import annotations
 
-from typing import Iterable
-
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QFrame,
+    QSizePolicy,
     QHBoxLayout,
-    QHeaderView,
     QLabel,
     QLineEdit,
     QPushButton,
-    QTableWidget,
-    QTableWidgetItem,
     QVBoxLayout,
     QWidget,
 )
@@ -57,6 +51,7 @@ class SectionHeader(QWidget):
         self.subtitle = QLabel(subtitle)
         self.subtitle.setObjectName("sectionSubtitle")
         self.subtitle.setWordWrap(True)
+        self.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Maximum)
         layout.addWidget(self.title)
         if subtitle:
             layout.addWidget(self.subtitle)
@@ -93,71 +88,3 @@ class FileRow(QWidget):
 
     def set_path(self, value: str) -> None:
         self.line_edit.setText(value)
-
-
-def make_table(
-    headers: list[str],
-    *,
-    editable: bool = False,
-    stretch_last: bool = True,
-    sorting: bool = False,
-) -> QTableWidget:
-    table = QTableWidget(0, len(headers))
-    table.setHorizontalHeaderLabels(headers)
-    table.verticalHeader().setVisible(False)
-    table.setAlternatingRowColors(True)
-    table.setWordWrap(False)
-    table.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
-    table.setSelectionMode(QTableWidget.SelectionMode.SingleSelection)
-    table.setEditTriggers(
-        QTableWidget.EditTrigger.DoubleClicked
-        | QTableWidget.EditTrigger.EditKeyPressed
-        if editable
-        else QTableWidget.EditTrigger.NoEditTriggers
-    )
-    table.setSortingEnabled(sorting)
-    header = table.horizontalHeader()
-    header.setStretchLastSection(stretch_last)
-    header.setSectionResizeMode(QHeaderView.ResizeMode.Interactive)
-    return table
-
-
-def set_item(
-    table: QTableWidget,
-    row: int,
-    col: int,
-    value: object,
-    *,
-    editable: bool = False,
-    align_right: bool = False,
-    background: str | None = None,
-    tooltip: str | None = None,
-) -> QTableWidgetItem:
-    item = QTableWidgetItem("" if value is None else str(value))
-    flags = item.flags()
-    if editable:
-        flags |= Qt.ItemFlag.ItemIsEditable
-    else:
-        flags &= ~Qt.ItemFlag.ItemIsEditable
-    item.setFlags(flags)
-    if align_right:
-        item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-    if background:
-        item.setBackground(QColor(background))
-    if tooltip:
-        item.setToolTip(tooltip)
-    table.setItem(row, col, item)
-    return item
-
-
-def fill_rows(table: QTableWidget, rows: Iterable[list[object]]) -> None:
-    rows = list(rows)
-    sorting = table.isSortingEnabled()
-    if sorting:
-        table.setSortingEnabled(False)
-    table.setRowCount(len(rows))
-    for r, values in enumerate(rows):
-        for c, value in enumerate(values):
-            set_item(table, r, c, value)
-    if sorting:
-        table.setSortingEnabled(True)
