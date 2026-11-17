@@ -5,63 +5,34 @@ Projet : **RAD Gardes Automator V7** — moteur Python + interface PySide6
 et `src/gardes_gui/`, tests dans `tests/`, packaging dans `packaging/`.
 Ce dossier est synchronisé par **Syncthing** entre plusieurs machines.
 
-## Règle absolue : aucun `.git` dans ce dossier
+## Dépôt Git : dans le dossier
 
-Syncthing synchronise les fichiers internes de Git (index, locks, objets)
-et corrompt le dépôt. Donc :
+Le dépôt vit dans le `.git` de ce dossier (branche `main`, upstream
+`origin/main`). Tout se fait directement ici :
 
-- **jamais** de `git init`, `git clone` ou `git worktree add` ici ;
-- jamais de dossier `.git` ni de fichier `.git` de délégation ;
-- tout ce qui touche à Git se fait **sans `.git` local**, via `GIT_DIR`
-  pointant hors du dossier (voir ci-dessous).
+```bash
+git status
+git add -A && git commit -m "Message" && git push origin main
+```
 
-Dépôt distant : `git@github.com:gfahrni/rad-gardes-automator.git`
+L'ancienne méthode par `GIT_DIR` externe (`~/.rad-gardes-automator/.git`) et
+celle par clone temporaire sont **abandonnées** : l'historique est maintenant
+local, comme pour les autres projets du dossier `DEVELOPPEMENT`. Si
+`~/.rad-gardes-automator` existe encore, il est périmé (il pointait sur le même
+commit que `origin/main`) et peut être supprimé.
+
+Dépôt distant : `https://github.com/gfahrni/rad-gardes-automator.git`
 (branche `main`). La V7 succède à la V6 (tag `v6.0.0`), elle-même issue de
 la V4 (`v4.0.1`) ; la V5 simplifiée est abandonnée mais ses tags `v5.0.x`
 restent dans l'historique.
 
 ## Interagir avec GitHub
 
-Deux méthodes, au choix. Dans les deux cas, le dossier de travail reste
-un simple dossier de fichiers.
-
-### 1. Historique externe (méthode habituelle)
-
-L'historique vit dans `~/.rad-gardes-automator/.git` et pointe sur ce
-dossier via `core.worktree`. Chaque commande Git doit définir les deux
-variables :
-
-```bash
-export GIT_DIR="$HOME/.rad-gardes-automator/.git"
-export GIT_WORK_TREE="$PWD"
-
-git status
-git add -A && git commit -m "Message" && git push origin main
-```
-
-Si ce dossier n'existe pas encore (autre machine, ou supprimé), le
-recréer une fois — cela ne touche pas aux fichiers du projet :
-
-```bash
-env -u GIT_DIR -u GIT_WORK_TREE \
-  git clone --no-checkout git@github.com:gfahrni/rad-gardes-automator.git \
-  "$HOME/.rad-gardes-automator"
-git config core.worktree "$PWD"
-git reset --mixed
-```
-
-### 2. Clone temporaire (si l'historique externe est indisponible)
-
-```bash
-TMP="$(mktemp -d)"
-git clone git@github.com:gfahrni/rad-gardes-automator.git "$TMP/repo"
-rsync -a --delete --exclude '.git/' --exclude '.venv/' --exclude 'build/' \
-  --exclude 'dist/' --exclude 'data/' --exclude '__pycache__/' \
-  --exclude '.build-venv/' --exclude '.build-work/' \
-  ./ "$TMP/repo/"
-cd "$TMP/repo" && git add -A && git commit -m "Message" && git push
-cd - && rm -rf "$TMP"
-```
+- Auth : `gh` alimente l'aide-mémoire HTTPS (`!gh auth git-credential` dans
+  `~/.gitconfig`). Vérifier avec `gh auth status`.
+- Identité du dépôt : `gfahrni <guillaume.fahrni@chuv.ch>`.
+- Repli SSH si HTTPS échoue :
+  `git remote set-url origin git@github.com:gfahrni/rad-gardes-automator.git`.
 
 `.gitignore` reste la référence : ne forcez jamais l'ajout de fichiers
 ignorés (`git add -f` interdit).
@@ -69,7 +40,8 @@ ignorés (`git add -f` interdit).
 ## Vérifier une publication
 
 ```bash
-git ls-remote git@github.com:gfahrni/rad-gardes-automator.git refs/heads/main
+git fetch origin && git status -sb        # « ## main...origin/main » sans écart
+git ls-remote origin refs/heads/main      # SHA distant == git rev-parse HEAD
 ```
 
 Le SHA distant doit correspondre au dernier commit local. Un push sur
@@ -98,11 +70,13 @@ comportement. Style : français, docstrings concises, moteur dans
 
 ## Pièges
 
-- **« not a git repository »** : `GIT_DIR` / `GIT_WORK_TREE` ne sont pas
-  définis. Utilisez la méthode ci-dessus.
-- **Dossier du projet déplacé** : `git config core.worktree "<nouveau
-  chemin>"`, ou supprimez `~/.rad-gardes-automator` pour forcer un
-  reclonage.
+- **« not a git repository »** : vous n'êtes pas à la racine du projet, ou le
+  `.git` a disparu. Vérifier avec `git -C . rev-parse --show-toplevel`.
+- **Dossier du projet déplacé** : le `.git` suit le dossier, rien à faire. Ne
+  plus utiliser `core.worktree`.
+- **`.git` et Syncthing** : `~/Nextcloud/.stignore` exclut `.git` ; ne pas
+  retirer cette ligne, sinon index/locks/objets seront répliqués et le dépôt
+  se corrompra.
 - **`pull` avec modifications locales** : commit suspect ou conflit,
   inspectez avant de forcer quoi que ce soit.
 - **Fichiers ignorés** : `data/`, `.venv/`, `.build-venv/`, `.build-work/`,
