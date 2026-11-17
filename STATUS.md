@@ -6,7 +6,7 @@
 conservés, mais l'interface est réduite à **un seul écran** : trois fichiers,
 un dossier de sortie, « Lancer », puis le rapport et le planning rempli.
 
-- Tests : **53 verts** (moteur, contrôleur, écran unique, thème, chemins).
+- Tests : **54 verts** (moteur, contrôleur, écran unique, thème, chemins).
 - App macOS : construite, signée ad-hoc, self-test, smoke test et lancement
   Cocoa vérifiés ; ZIP extrait et retesté.
 - App Windows : construite par la CI GitHub Actions sur tag `v7*`, avec
@@ -15,6 +15,17 @@ un dossier de sortie, « Lancer », puis le rapport et le planning rempli.
 ```bash
 QT_QPA_PLATFORM=offscreen .venv/bin/pytest -q
 ```
+
+### Compatibilité 7.1.0
+
+Les en-têtes de garde du soir `13h-23h` **et** `15h-23h` sont acceptés.
+Testé sur les deux templates de backup :
+
+- `backup_ete.2026.xlsx` : 184 jours, 112 créneaux, 4 fériés, 0 garde pré-remplie ;
+- `backup_hiver.2027.xlsx` : 181 jours, 102 créneaux, 0 férié, 0 garde pré-remplie.
+
+Aucun code spécifique à l'hiver n'était nécessaire : les deux classeurs ont la
+même structure `Feuille1` (6 zones mensuelles, mêmes colonnes GARDE).
 
 ### Correctif 7.0.1
 
@@ -96,7 +107,7 @@ packaging/build-windows.ps1
 
 Workflow : `.github/workflows/release-v7.yml`, déclenché par un tag `v7*`.
 
-1. `git tag v7.0.0 && git push origin v7.0.0`
+1. `git tag v7.1.0 && git push origin v7.1.0`
 2. La CI teste le projet, construit l'app Windows, exécute `--self-test` et
    `--smoke-test`, crée `RAD-Gardes-V7-windows-x64.zip` et la release.
 3. L'app macOS est construite localement (les runners macOS ne sont pas
@@ -104,7 +115,7 @@ Workflow : `.github/workflows/release-v7.yml`, déclenché par un tag `v7*`.
 
 ```bash
 packaging/build-macos.sh
-gh release upload v7.0.0 dist/RAD-Gardes-V7-macos-arm64.zip
+gh release upload v7.1.0 dist/RAD-Gardes-V7-macos-arm64.zip
 ```
 
 ## Architecture

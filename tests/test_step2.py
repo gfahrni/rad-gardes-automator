@@ -33,6 +33,27 @@ def test_example_counts(planning_xlsx: Path) -> None:
     ]
 
 
+def test_headers_accept_13h_and_15h() -> None:
+    from openpyxl import Workbook
+
+    from gardes.step2_planning import _find_header_zones
+
+    wb = Workbook()
+    ws = wb.active
+    for header_row in (4, 38):
+        for day_col, hours in ((6, "13h-23h"), (15, "15h-23h"), (24, "15h-23h")):
+            ws.cell(header_row, day_col).value = "GARDE\n07h30-17h42\n08h-16h WE"
+            ws.cell(header_row, day_col + 1).value = f"GARDE                {hours}"
+    assert _find_header_zones(ws) == [
+        (4, 6, 7),
+        (4, 15, 16),
+        (4, 24, 25),
+        (38, 6, 7),
+        (38, 15, 16),
+        (38, 24, 25),
+    ]
+
+
 def test_indicators_and_january_second(planning_xlsx: Path) -> None:
     data = parse_planning(planning_xlsx)
     by_date = {d["date"]: d for d in data["days"]}

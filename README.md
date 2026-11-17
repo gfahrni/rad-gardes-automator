@@ -22,6 +22,9 @@ est scanné, le PDF est validé, les souhaits sont lus, l'attribution est
 calculée et les fichiers sont écrits en une seule opération. En cas de donnée
 incohérente, un message explicite indique quoi corriger.
 
+Le scan du planning accepte les en-têtes de garde du soir **13h-23h** et
+**15h-23h** : les deux formats réels coexistent.
+
 ## Sorties
 
 Dans le dossier de sortie, **deux fichiers seulement** :
@@ -163,8 +166,8 @@ rad-gardes-automator/
 ## Publier une release V7
 
 ```bash
-git tag v7.0.0
-git push origin v7.0.0
+git tag v7.1.0
+git push origin v7.1.0
 ```
 
 Le workflow `.github/workflows/release-v7.yml` construit l'application Windows
@@ -177,7 +180,7 @@ ajoutée à la release :
 
 ```bash
 packaging/build-macos.sh
-gh release upload v7.0.0 dist/RAD-Gardes-V7-macos-arm64.zip
+gh release upload v7.1.0 dist/RAD-Gardes-V7-macos-arm64.zip
 ```
 
 Le workflow peut aussi être lancé manuellement depuis l'onglet Actions ; dans
@@ -190,7 +193,7 @@ release.
 - Pas d'exécutable onefile ; la version Windows est fournie en `onedir`.
 - Pas de signature Windows/macOS ni de notarisation.
 - Pas de round suivant : chaque période repart des trois documents de référence.
-- Pas de version été.
+- Pas de logique spécifique à l'été : un planning été se traite comme une autre période, avec le PDF et les souhaits correspondants.
 - Le PDF et le planning sont calés sur le format des exemples fournis.
 
 Voir `STATUS.md` pour l'état du build et la reprise.

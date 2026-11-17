@@ -87,10 +87,14 @@ def _find_header_zones(ws) -> list[tuple[int, int, int]]:
     for row in range(1, ws.max_row + 1):
         for col in range(1, ws.max_column + 1):
             value = ws.cell(row, col).value
-            if (
-                isinstance(value, str)
-                and value.strip().upper().startswith("GARDE")
-                and "13H-23H" in value.upper().replace(" ", "")
+            if isinstance(value, str):
+                compact = "".join(value.split()).upper()
+            else:
+                compact = ""
+            # Les plannings réels utilisent 13h-23h ou 15h-23h pour la garde
+            # du soir ; les deux libellés sont acceptés.
+            if compact.startswith("GARDE") and (
+                "13H-23H" in compact or "15H-23H" in compact
             ):
                 day_col = col - 1
                 if day_col < 1:
